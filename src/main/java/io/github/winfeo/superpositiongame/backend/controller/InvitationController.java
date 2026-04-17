@@ -4,6 +4,7 @@ import io.github.winfeo.superpositiongame.backend.dto.invitation.InvitationDto;
 import io.github.winfeo.superpositiongame.backend.dto.invitation.InvitationEventDto;
 import io.github.winfeo.superpositiongame.backend.dto.invitation.InvitationEventType;
 import io.github.winfeo.superpositiongame.backend.entity.Invitation;
+import io.github.winfeo.superpositiongame.backend.game.core.service.GameService;
 import io.github.winfeo.superpositiongame.backend.listener.InvitationEventPublisher;
 import io.github.winfeo.superpositiongame.backend.service.InvitationService;
 import io.github.winfeo.superpositiongame.backend.util.InvitationMapper;
@@ -17,14 +18,17 @@ import java.util.Set;
 @Controller
 public class InvitationController {
     private final InvitationService invitationService;
+    private final GameService gameService;
     private final InvitationEventPublisher publisher;
 
     public InvitationController(
             InvitationService invitationService,
-            InvitationEventPublisher publisher
+            InvitationEventPublisher publisher,
+            GameService gameService
     ) {
         this.invitationService = invitationService;
         this.publisher = publisher;
+        this.gameService = gameService;
     }
 
     @MessageMapping("/invite")
@@ -78,6 +82,12 @@ public class InvitationController {
         publisher.sendToUser(
                 invitation.senderId(),
                 event
+        );
+
+        //старт игры
+        gameService.createGame(
+                invitation.senderId(),
+                invitation.receiverId()
         );
     }
 
