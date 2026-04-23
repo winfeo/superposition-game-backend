@@ -9,6 +9,7 @@ import io.github.winfeo.superpositiongame.backend.game.model.dice.Dice;
 import io.github.winfeo.superpositiongame.backend.game.model.game.*;
 import io.github.winfeo.superpositiongame.backend.game.model.move.*;
 import io.github.winfeo.superpositiongame.backend.game.util.ArrowCompatibilityUtil;
+import io.github.winfeo.superpositiongame.backend.game.util.SameRowUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -73,6 +74,11 @@ public class GameEngine {
         //ищем тарет id игрока
         String targetPlayerId = findPlayerId(state, move.targetPlayerId());
 
+        //проверяем, что карта кладётся в тот же регистр (для Kron Multi)
+        if (!SameRowUtil.isMoveAllowed(state, targetPlayerId)) {
+            return state;
+        }
+
         //обновляем состояние (применяем эффект)
         GameState stateAfterEffect = effect.apply(
                 state,
@@ -80,6 +86,9 @@ public class GameEngine {
                 move.targetSlotIndex(),
                 targetPlayerId
         );
+
+        //фиксируем ряд, если это первый ход после Kron Multi
+        stateAfterEffect = SameRowUtil.updateRowAfterMove(stateAfterEffect, targetPlayerId);
 
         //обновляем руку игрока
         PlayerState updatedPlayer = stateAfterEffect.players().get(move.playerId());
@@ -98,6 +107,12 @@ public class GameEngine {
 
         //ищем тарет id игрока
         String targetPlayerId = findPlayerId(state, move.targetPlayerId());
+
+        //проверяем, что карта кладётся в тот же регистр (для Kron Multi)
+        if (!SameRowUtil.isMoveAllowed(state, targetPlayerId)) {
+            return state;
+        }
+
         //ищем игрока, чей слот будем изменять
         PlayerState targetPlayer = state.players().get(targetPlayerId);
         //ищем игрока, который делает ход
@@ -152,6 +167,9 @@ public class GameEngine {
             updatedPlayers.put(targetPlayerId, updatedTarget);
             updatedPlayers.put(move.playerId(), updatedActing);
         }
+
+        //фиксируем ряд, если это первый ход после Kron Multi
+        state = SameRowUtil.updateRowAfterMove(state, targetPlayerId);
 
         return state.copyWithPlayers(updatedPlayers);
     }

@@ -97,7 +97,8 @@ public class GameLoop {
 //                CardType.ROTATE_X,
 //                CardType.ROTATE_Y,
 //                CardType.ROTATE_Z,
-                CardType.KRONECKER_MULTIPLICATION
+                CardType.KRONECKER_MULTIPLICATION,
+                CardType.IDENTITY
         };
 //        CardType[] types = CardType.values();
 
@@ -187,7 +188,15 @@ public class GameLoop {
             return updatedState;
         }
 
-        GameState afterTurn = endTurn(updatedState);
+        GameState clearedState = new GameState( //сбрасываем активный ряд (Kron Multi)
+                updatedState.phase(),
+                updatedState.currentPlayerId(),
+                updatedState.players(),
+                updatedState.turnNumber(),
+                null
+        );
+
+        GameState afterTurn = endTurn(clearedState);
 
         if (afterTurn.turnNumber() % 2 == 0) {
             publisher.sendToUser( //TODO убрать

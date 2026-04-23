@@ -34,7 +34,14 @@ public class MultiplicationEffect implements CardEffect {
         System.out.println("=========================");
 
 
-        return state.copyWithPlayers(updatedPlayers);
+//        return state.copyWithPlayers(updatedPlayers);
+        return new GameState(
+                state.phase(),
+                state.currentPlayerId(),
+                updatedPlayers,
+                state.turnNumber(),
+                null
+        );
     }
 
     @Override
