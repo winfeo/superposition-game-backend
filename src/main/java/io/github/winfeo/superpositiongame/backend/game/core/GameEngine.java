@@ -3,12 +3,15 @@ package io.github.winfeo.superpositiongame.backend.game.core;
 import io.github.winfeo.superpositiongame.backend.game.effect.CardEffect;
 import io.github.winfeo.superpositiongame.backend.game.effect.CardEffectsRepository;
 import io.github.winfeo.superpositiongame.backend.game.model.card.Card;
+import io.github.winfeo.superpositiongame.backend.game.model.card.CardDescription;
+import io.github.winfeo.superpositiongame.backend.game.model.card.CardDescriptionRepository;
 import io.github.winfeo.superpositiongame.backend.game.model.dice.Dice;
 import io.github.winfeo.superpositiongame.backend.game.model.game.*;
 import io.github.winfeo.superpositiongame.backend.game.model.move.Move;
 import io.github.winfeo.superpositiongame.backend.game.model.move.PlayCard;
 import io.github.winfeo.superpositiongame.backend.game.model.move.RotateDice;
 import io.github.winfeo.superpositiongame.backend.game.model.move.SwapDices;
+import io.github.winfeo.superpositiongame.backend.game.util.ArrowCompatibilityUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -114,14 +117,21 @@ public class GameEngine {
                 .orElse(null);
         if (card == null) return state;
 
-        //обновляем состояние дайса
-        Dice updatedDice = new Dice(
-                slot.dice().id(),
-                move.newState(),
-                slot.dice().requiredState()
-        );
+        //проверяем можно ли обновить дайс картой
+        CardDescription description = CardDescriptionRepository.get(card.type());
+        boolean result = ArrowCompatibilityUtil.isCardCompatibleWithArrow(description, slot.dice());
 
-        //добовляем карту в слот
+        Dice updatedDice = slot.dice();
+        if (result) {
+            //обновляем состояние дайса
+            updatedDice = new Dice(
+                    slot.dice().id(),
+                    move.newState(),
+                    slot.dice().requiredState()
+            );
+        }
+
+        //добавляем карту в слот
         List<Card> appliedCards = new ArrayList<>(slot.appliedCards());
         appliedCards.add(card);
         SlotState updatedSlot = slot
