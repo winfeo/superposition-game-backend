@@ -1,14 +1,8 @@
 package io.github.winfeo.superpositiongame.backend.game.util;
 
-import io.github.winfeo.superpositiongame.backend.game.dto.move.MoveDto;
-import io.github.winfeo.superpositiongame.backend.game.dto.move.PlayCardDto;
-import io.github.winfeo.superpositiongame.backend.game.dto.move.RotateDiceDto;
-import io.github.winfeo.superpositiongame.backend.game.dto.move.SwapDicesDto;
+import io.github.winfeo.superpositiongame.backend.game.dto.move.*;
 import io.github.winfeo.superpositiongame.backend.game.model.dice.DiceState;
-import io.github.winfeo.superpositiongame.backend.game.model.move.Move;
-import io.github.winfeo.superpositiongame.backend.game.model.move.PlayCard;
-import io.github.winfeo.superpositiongame.backend.game.model.move.RotateDice;
-import io.github.winfeo.superpositiongame.backend.game.model.move.SwapDices;
+import io.github.winfeo.superpositiongame.backend.game.model.move.*;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -38,6 +32,13 @@ public class MoveMapper {
                     d.playerId(),
                     d.firstSlotIndex(),
                     d.secondSlotIndex()
+            );
+        }
+
+        if (dto instanceof DoubleTapEffectDto d) {
+            return new DoubleTapEffect(
+                    d.playerId(),
+                    d.cardId()
             );
         }
 

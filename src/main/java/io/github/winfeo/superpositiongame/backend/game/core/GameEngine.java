@@ -7,10 +7,7 @@ import io.github.winfeo.superpositiongame.backend.game.model.card.CardDescriptio
 import io.github.winfeo.superpositiongame.backend.game.model.card.CardDescriptionRepository;
 import io.github.winfeo.superpositiongame.backend.game.model.dice.Dice;
 import io.github.winfeo.superpositiongame.backend.game.model.game.*;
-import io.github.winfeo.superpositiongame.backend.game.model.move.Move;
-import io.github.winfeo.superpositiongame.backend.game.model.move.PlayCard;
-import io.github.winfeo.superpositiongame.backend.game.model.move.RotateDice;
-import io.github.winfeo.superpositiongame.backend.game.model.move.SwapDices;
+import io.github.winfeo.superpositiongame.backend.game.model.move.*;
 import io.github.winfeo.superpositiongame.backend.game.util.ArrowCompatibilityUtil;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +30,7 @@ public class GameEngine {
         handlers.put(PlayCard.class, (MoveHandler<PlayCard>) this::handlePlayCard);
         handlers.put(RotateDice.class, (MoveHandler<RotateDice>) this::handleRotateDice);
         handlers.put(SwapDices.class, (MoveHandler<SwapDices>) this::handleSwapDices);
+        handlers.put(DoubleTapEffect.class, (MoveHandler<DoubleTapEffect>) this::handleDoubleTapEffect);
     }
 
     public GameState applyMove(GameState state, Move move) {
@@ -179,6 +177,42 @@ public class GameEngine {
         updatedPlayers.put(playerId, updatedPlayer);
 
         return state.copyWithPlayers(updatedPlayers);
+    }
+
+    private GameState handleDoubleTapEffect(GameState state, DoubleTapEffect move) {
+        //ищем игрока
+        PlayerState player = state.players().get(move.playerId());
+        if (player == null) return state;
+
+        //ищем карту в его руке
+        Card card = player.hand().stream()
+                .filter(c -> c.id().equals(move.cardId()))
+                .findFirst()
+                .orElse(null);
+        if (card == null) return state;
+
+        //ищем эффект этой карты
+        CardEffect effect = effectsRepository.getEffect(card.type());
+        if (effect == null) return state;
+
+        //обновляем состояние (применяем эффект)
+        GameState stateAfterEffect = effect.apply(
+                state,
+                card,
+                -1, //TODO переделать структуру? (не применяется ни на какой слот)
+                move.playerId()
+        );
+
+        //обновляем руку игрока
+        PlayerState updatedPlayer = stateAfterEffect.players().get(move.playerId());
+        List<Card> newHand = updatedPlayer.hand().stream()
+                .filter(c -> !c.id().equals(move.cardId()))
+                .toList();
+        updatedPlayer = updatedPlayer.copyWithHand(newHand);
+        Map<String, PlayerState> updatedPlayers = new HashMap<>(stateAfterEffect.players());
+        updatedPlayers.put(move.playerId(), updatedPlayer);
+
+        return stateAfterEffect.copyWithPlayers(updatedPlayers);
     }
 
     private String findPlayerId( //TODO подумать, может быть сделать систему индексов

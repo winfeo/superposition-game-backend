@@ -85,18 +85,19 @@ public class GameLoop {
         //TODO сделать просто пул карт для тестирования?
         CardType[] types = {
                 CardType.PAULI_Y,
-                CardType.PAULI_X,
-                CardType.PAULI_Z,
-                CardType.PAULI_X_3,
-                CardType.PAULI_Y_3,
-                CardType.PAULI_Z_3,
-                CardType.HADAMARD,
-                CardType.HADAMARD_3,
-                CardType.PHASE_FORWARD,
-                CardType.PHASE_BACKWARD,
-                CardType.ROTATE_X,
-                CardType.ROTATE_Y,
-                CardType.ROTATE_Z
+//                CardType.PAULI_X,
+//                CardType.PAULI_Z,
+//                CardType.PAULI_X_3,
+//                CardType.PAULI_Y_3,
+//                CardType.PAULI_Z_3,
+//                CardType.HADAMARD,
+//                CardType.HADAMARD_3,
+//                CardType.PHASE_FORWARD,
+//                CardType.PHASE_BACKWARD,
+//                CardType.ROTATE_X,
+//                CardType.ROTATE_Y,
+//                CardType.ROTATE_Z,
+                CardType.KRONECKER_MULTIPLICATION
         };
 //        CardType[] types = CardType.values();
 
@@ -104,8 +105,8 @@ public class GameLoop {
         CardType type = types[randomNumber];
 
         String randomId = UUID.randomUUID().toString();
-//        return new Card(randomId, type);
-        return new Card(randomId, CardType.ROTATE_Y);
+        return new Card(randomId, type);
+//        return new Card(randomId, CardType.ROTATE_Y);
     }
 
     private Dice generateRandomDice() {
