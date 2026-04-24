@@ -99,7 +99,7 @@ public class GameLoop {
 //                CardType.ROTATE_Z,
                 CardType.KRONECKER_MULTIPLICATION,
 //                CardType.IDENTITY,
-//                CardType.SWAP,
+                CardType.SWAP,
                 CardType.MEASUREMENT
         };
 //        CardType[] types = CardType.values();

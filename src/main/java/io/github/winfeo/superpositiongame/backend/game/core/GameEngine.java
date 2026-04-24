@@ -261,6 +261,14 @@ public class GameEngine {
         PlayerState updatedPlayer = player.copyWithSlots(playerSlots);
         PlayerState updatedOpponent = opponent.copyWithSlots(opponentSlots);
 
+        //удаляем карту из руки
+        List<Card> newHand = player.hand().stream()
+                .filter(c -> !c.id().equals(move.cardId()))
+                .toList();
+
+        updatedPlayer = updatedPlayer.copyWithHand(newHand);
+
+
         Map<String, PlayerState> updatedPlayers = new HashMap<>(state.players());
         updatedPlayers.put(player.id(), updatedPlayer);
         updatedPlayers.put(opponent.id(), updatedOpponent);

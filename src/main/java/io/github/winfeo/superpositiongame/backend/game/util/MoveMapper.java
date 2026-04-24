@@ -30,6 +30,7 @@ public class MoveMapper {
         if (dto instanceof SwapDicesDto d) {
             return new SwapDices(
                     d.playerId(),
+                    d.cardId(),
                     d.firstSlotIndex(),
                     d.secondSlotIndex(),
                     d.firstSlotOwner(),
