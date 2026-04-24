@@ -98,7 +98,8 @@ public class GameLoop {
 //                CardType.ROTATE_Y,
 //                CardType.ROTATE_Z,
                 CardType.KRONECKER_MULTIPLICATION,
-                CardType.IDENTITY
+//                CardType.IDENTITY,
+                CardType.SWAP
         };
 //        CardType[] types = CardType.values();
 
@@ -107,7 +108,7 @@ public class GameLoop {
 
         String randomId = UUID.randomUUID().toString();
         return new Card(randomId, type);
-//        return new Card(randomId, CardType.ROTATE_Y);
+//        return new Card(randomId, CardType.SWAP);
     }
 
     private Dice generateRandomDice() {

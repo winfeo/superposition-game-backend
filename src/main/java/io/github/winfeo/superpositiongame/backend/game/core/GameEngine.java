@@ -176,23 +176,74 @@ public class GameEngine {
 
     private GameState handleSwapDices(GameState state, SwapDices move) {
         String playerId = move.playerId();
-        //ищем игрока
+
+        //ищем игроков
         PlayerState player = state.players().get(playerId);
-        if (player == null) return state;
+        PlayerState opponent = state.players().values().stream()
+                .filter(p -> !p.id().equals(move.playerId()))
+                .findFirst()
+                .orElse(null);
+        if (player == null || opponent == null) return state;
 
         //ищем нужные слоты
-        List<SlotState> slots = new ArrayList<>(player.slots());
-        SlotState first = slots.get(move.firstSlotIndex());
-        SlotState second = slots.get(move.secondSlotIndex());
+        List<SlotState> playerSlots = new ArrayList<>(player.slots());
+        List<SlotState> opponentSlots = new ArrayList<>(opponent.slots());
+
+        SlotState first;
+        SlotState second;
+
+        if (SlotOwner.PLAYER.name().equals(move.firstSlotOwner())) {
+            first = playerSlots.get(move.firstSlotIndex());
+        } else {
+            first = opponentSlots.get(move.firstSlotIndex());
+        }
+
+        if (SlotOwner.PLAYER.name().equals(move.secondSlotOwner())) {
+            second = playerSlots.get(move.secondSlotIndex());
+        } else {
+            second = opponentSlots.get(move.secondSlotIndex());
+        }
+
+//        List<SlotState> slots = new ArrayList<>(player.slots());
+//        SlotState first = slots.get(move.firstSlotIndex());
+//        SlotState second = slots.get(move.secondSlotIndex());
 
         //меняем местами слоты
-        slots.set(move.firstSlotIndex(), first.copyWithDice(second.dice()));
-        slots.set(move.secondSlotIndex(), second.copyWithDice(first.dice()));
+//        slots.set(move.firstSlotIndex(), first.copyWithDice(second.dice()));
+//        slots.set(move.secondSlotIndex(), second.copyWithDice(first.dice()));
+
+        if (SlotOwner.PLAYER.name().equals(move.firstSlotOwner())) {
+            playerSlots.set(
+                    move.firstSlotIndex(),
+                    playerSlots.get(move.firstSlotIndex()).copyWithDice(second.dice())
+            );
+        } else {
+            opponentSlots.set(
+                    move.firstSlotIndex(),
+                    opponentSlots.get(move.firstSlotIndex()).copyWithDice(second.dice())
+            );
+        }
+
+        if (SlotOwner.PLAYER.name().equals(move.secondSlotOwner())) {
+            playerSlots.set(
+                    move.secondSlotIndex(),
+                    playerSlots.get(move.secondSlotIndex()).copyWithDice(first.dice())
+            );
+        } else {
+            opponentSlots.set(
+                    move.secondSlotIndex(),
+                    opponentSlots.get(move.secondSlotIndex()).copyWithDice(first.dice())
+            );
+        }
 
         //обновляем
-        PlayerState updatedPlayer = player.copyWithSlots(slots);
+//        PlayerState updatedPlayer = player.copyWithSlots(slots);
+        PlayerState updatedPlayer = player.copyWithSlots(playerSlots);
+        PlayerState updatedOpponent = opponent.copyWithSlots(opponentSlots);
+
         Map<String, PlayerState> updatedPlayers = new HashMap<>(state.players());
-        updatedPlayers.put(playerId, updatedPlayer);
+        updatedPlayers.put(player.id(), updatedPlayer);
+        updatedPlayers.put(opponent.id(), updatedOpponent);
 
         return state.copyWithPlayers(updatedPlayers);
     }

@@ -31,7 +31,9 @@ public class MoveMapper {
             return new SwapDices(
                     d.playerId(),
                     d.firstSlotIndex(),
-                    d.secondSlotIndex()
+                    d.secondSlotIndex(),
+                    d.firstSlotOwner(),
+                    d.secondSlotOwner()
             );
         }
 
