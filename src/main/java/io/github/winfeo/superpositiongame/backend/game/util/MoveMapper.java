@@ -45,6 +45,14 @@ public class MoveMapper {
             );
         }
 
+        if(dto instanceof ReshuffleCardDto d) {
+            return new ReshuffleCard(
+                    d.playerId(),
+                    d.cardId(),
+                    d.cardsToChange()
+            );
+        }
+
         throw new IllegalArgumentException("Unknown MoveDto: " + dto.getClass());
     }
 }

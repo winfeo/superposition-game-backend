@@ -146,6 +146,14 @@ public class CardDescriptionRepository {
                     1,
                     false,
                     null
+            )),
+
+            Map.entry(CardType.RESHUFFLE, new CardDescription(
+                    CardType.RESHUFFLE,
+                    null,
+                    1,
+                    false,
+                    null
             ))
     );
 

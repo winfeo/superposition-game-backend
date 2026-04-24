@@ -9,6 +9,7 @@ import io.github.winfeo.superpositiongame.backend.game.model.game.GamePhase;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameState;
 import io.github.winfeo.superpositiongame.backend.game.model.game.PlayerState;
 import io.github.winfeo.superpositiongame.backend.game.model.game.SlotState;
+import io.github.winfeo.superpositiongame.backend.util.CardGenerator;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -18,9 +19,15 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 public class GameLoop {
-    GameEventPublisher publisher;
-    public GameLoop (GameEventPublisher publisher) { //TODO убрать. Пока так, чтобы на клиенте обновлялось состояние карт у второго игрока
+    private final GameEventPublisher publisher;
+    private final CardGenerator cardGenerator;
+
+    public GameLoop (
+            GameEventPublisher publisher,
+            CardGenerator cardGenerator
+    ) { //TODO убрать. Пока так, чтобы на клиенте обновлялось состояние карт у второго игрока
         this.publisher = publisher;
+        this.cardGenerator = cardGenerator;
     }
     public GameState startGame(String playerA_id, String playerB_id) {
         //TODO случайно выбирать, кто первый ходит
@@ -44,7 +51,7 @@ public class GameLoop {
             List<Card> hand = new ArrayList<>(player.hand());
             int missing = 6 - hand.size();
             for (int i = 0; i < missing; i++) {
-                hand.add(generateRandomCard());
+                hand.add(cardGenerator.generateRandomCard());
             }
 
             players.put(player.id(), player.copyWithHand(hand));
@@ -81,36 +88,37 @@ public class GameLoop {
         return state.copyWithPlayers(players);
     }
 
-    private Card generateRandomCard() {
-        //TODO сделать просто пул карт для тестирования?
-        CardType[] types = {
-                CardType.PAULI_Y,
+//    Card generateRandomCard() { //TODO переделать
+//        //TODO сделать просто пул карт для тестирования?
+//        CardType[] types = {
+//                CardType.PAULI_Y,
 //                CardType.PAULI_X,
 //                CardType.PAULI_Z,
-//                CardType.PAULI_X_3,
-//                CardType.PAULI_Y_3,
-//                CardType.PAULI_Z_3,
-//                CardType.HADAMARD,
-//                CardType.HADAMARD_3,
-//                CardType.PHASE_FORWARD,
-//                CardType.PHASE_BACKWARD,
-//                CardType.ROTATE_X,
-//                CardType.ROTATE_Y,
-//                CardType.ROTATE_Z,
-                CardType.KRONECKER_MULTIPLICATION,
-//                CardType.IDENTITY,
-                CardType.SWAP,
-                CardType.MEASUREMENT
-        };
-//        CardType[] types = CardType.values();
-
-        int randomNumber = ThreadLocalRandom.current().nextInt(types.length);
-        CardType type = types[randomNumber];
-
-        String randomId = UUID.randomUUID().toString();
-        return new Card(randomId, type);
-//        return new Card(randomId, CardType.SWAP);
-    }
+////                CardType.PAULI_X_3,
+////                CardType.PAULI_Y_3,
+////                CardType.PAULI_Z_3,
+////                CardType.HADAMARD,
+////                CardType.HADAMARD_3,
+////                CardType.PHASE_FORWARD,
+////                CardType.PHASE_BACKWARD,
+////                CardType.ROTATE_X,
+////                CardType.ROTATE_Y,
+////                CardType.ROTATE_Z,
+////                CardType.KRONECKER_MULTIPLICATION,
+////                CardType.IDENTITY,
+////                CardType.SWAP,
+////                CardType.MEASUREMENT,
+//                CardType.RESHUFFLE
+//        };
+////        CardType[] types = CardType.values();
+//
+//        int randomNumber = ThreadLocalRandom.current().nextInt(types.length);
+//        CardType type = types[randomNumber];
+//
+//        String randomId = UUID.randomUUID().toString();
+//        return new Card(randomId, type);
+////        return new Card(randomId, CardType.SWAP);
+//    }
 
     private Dice generateRandomDice() {
         DiceState[] values = DiceState.values();

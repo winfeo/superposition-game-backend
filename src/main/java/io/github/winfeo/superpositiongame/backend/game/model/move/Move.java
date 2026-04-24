@@ -4,7 +4,8 @@ public sealed interface Move permits
         PlayCard,
         RotateDice,
         SwapDices,
-        DoubleTapEffect
+        DoubleTapEffect,
+        ReshuffleCard
 {
     String playerId();
 }

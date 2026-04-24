@@ -2,6 +2,7 @@ package io.github.winfeo.superpositiongame.backend.game.core;
 
 import io.github.winfeo.superpositiongame.backend.game.effect.CardEffect;
 import io.github.winfeo.superpositiongame.backend.game.effect.CardEffectsRepository;
+import io.github.winfeo.superpositiongame.backend.game.effect.effect.ReshuffleEffect;
 import io.github.winfeo.superpositiongame.backend.game.model.card.Card;
 import io.github.winfeo.superpositiongame.backend.game.model.card.CardDescription;
 import io.github.winfeo.superpositiongame.backend.game.model.card.CardDescriptionRepository;
@@ -11,28 +12,29 @@ import io.github.winfeo.superpositiongame.backend.game.model.game.*;
 import io.github.winfeo.superpositiongame.backend.game.model.move.*;
 import io.github.winfeo.superpositiongame.backend.game.util.ArrowCompatibilityUtil;
 import io.github.winfeo.superpositiongame.backend.game.util.SameRowUtil;
+import io.github.winfeo.superpositiongame.backend.util.CardGenerator;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
 public class GameEngine {
-
     private final Map<Class<? extends Move>, MoveHandler<?>> handlers = new HashMap<>();
     private final CardEffectsRepository effectsRepository;
+    private final CardGenerator cardGenerator;
 
     public GameEngine(
-            CardEffectsRepository effectsRepository
+            CardEffectsRepository effectsRepository,
+            CardGenerator cardGenerator
     ) {
         this.effectsRepository = effectsRepository;
+        this.cardGenerator = cardGenerator;
         handlers.put(PlayCard.class, (MoveHandler<PlayCard>) this::handlePlayCard);
         handlers.put(RotateDice.class, (MoveHandler<RotateDice>) this::handleRotateDice);
         handlers.put(SwapDices.class, (MoveHandler<SwapDices>) this::handleSwapDices);
         handlers.put(DoubleTapEffect.class, (MoveHandler<DoubleTapEffect>) this::handleDoubleTapEffect);
+        handlers.put(ReshuffleCard.class, (MoveHandler<ReshuffleCard>) this::handleReshuffleCard);
     }
 
     public GameState applyMove(GameState state, Move move) {
@@ -310,6 +312,61 @@ public class GameEngine {
         updatedPlayers.put(move.playerId(), updatedPlayer);
 
         return stateAfterEffect.copyWithPlayers(updatedPlayers);
+    }
+
+    private GameState handleReshuffleCard(GameState state, ReshuffleCard move) {
+        //ищем игрока
+        PlayerState player = state.players().get(move.playerId());
+        if (player == null) return state;
+
+        //ищем карту в его руке
+        Card card = player.hand().stream()
+                .filter(c -> c.id().equals(move.cardId()))
+                .findFirst()
+                .orElse(null);
+
+        if (card == null) return state;
+        if (card.type() != CardType.RESHUFFLE) return state;
+
+        //находим выбранные карты в руке
+        List<Card> selectedCards = player.hand().stream()
+                .filter(c -> move.cardsToChange().contains(c.id()))
+                .toList();
+        if (selectedCards.size() != move.cardsToChange().size()) return state;
+        if (selectedCards.isEmpty() || selectedCards.size() > 4) return state;
+
+        //список ID карт для удаления (Reshuffle + выбранные)
+        Set<String> cardsToRemove = new HashSet<>();
+        cardsToRemove.add(card.id());
+        cardsToRemove.addAll(move.cardsToChange());
+
+        //удаляем карты из руки
+        List<Card> remainingHand = player.hand().stream()
+                .filter(c -> !cardsToRemove.contains(c.id()))
+                .toList();
+
+        //генерируем новые карты
+        int cardsToGenerate = selectedCards.size();
+        List<Card> newCards = cardGenerator.generateRandomCards(cardsToGenerate);
+
+        //обновляем руку игрока
+        List<Card> updatedHand = new ArrayList<>(remainingHand);
+        updatedHand.addAll(newCards);
+
+        //обновляем игрока
+        PlayerState updatedPlayer = player.copyWithHand(updatedHand);
+        Map<String, PlayerState> updatedPlayers = new HashMap<>(state.players());
+        updatedPlayers.put(move.playerId(), updatedPlayer);
+
+        System.out.println("=== RESHUFFLE EFFECT ===");
+        System.out.println("Player: " + move.playerId());
+        System.out.println("Reshuffle card removed: " + card.id());
+        System.out.println("Cards removed: " + move.cardsToChange());
+        System.out.println("Cards remaining: " + remainingHand.size());
+        System.out.println("Cards generated: " + newCards.size());
+        System.out.println("Final hand size: " + updatedHand.size());
+
+        return state.copyWithPlayers(updatedPlayers);
     }
 
     private String findPlayerId( //TODO подумать, может быть сделать систему индексов
