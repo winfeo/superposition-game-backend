@@ -5,6 +5,7 @@ import io.github.winfeo.superpositiongame.backend.game.effect.CardEffectsReposit
 import io.github.winfeo.superpositiongame.backend.game.model.card.Card;
 import io.github.winfeo.superpositiongame.backend.game.model.card.CardDescription;
 import io.github.winfeo.superpositiongame.backend.game.model.card.CardDescriptionRepository;
+import io.github.winfeo.superpositiongame.backend.game.model.card.CardType;
 import io.github.winfeo.superpositiongame.backend.game.model.dice.Dice;
 import io.github.winfeo.superpositiongame.backend.game.model.game.*;
 import io.github.winfeo.superpositiongame.backend.game.model.move.*;
@@ -79,6 +80,18 @@ public class GameEngine {
             return state;
         }
 
+        //проверяем, что карта не в заморозке или можно применить карты
+        PlayerState targetPlayer = state.players().get(targetPlayerId);
+        if (targetPlayer == null) return state;
+
+        SlotState slot = targetPlayer.slots().get(move.targetSlotIndex());
+
+        if (slot.isFrozen() &&
+                card.type() != CardType.QUANTUM_NOISE &&
+                card.type() != CardType.SWAP) {
+            return state;
+        }
+
         //обновляем состояние (применяем эффект)
         GameState stateAfterEffect = effect.apply(
                 state,
@@ -133,6 +146,13 @@ public class GameEngine {
         //проверяем можно ли обновить дайс картой
         CardDescription description = CardDescriptionRepository.get(card.type());
         boolean result = ArrowCompatibilityUtil.isCardCompatibleWithArrow(description, slot.dice());
+
+        //проверяем, что карта не в заморозке или можно применить карты
+        if (slot.isFrozen() &&
+                card.type() != CardType.QUANTUM_NOISE &&
+                card.type() != CardType.SWAP) {
+            return state;
+        }
 
         Dice updatedDice = slot.dice();
         if (result) {

@@ -23,12 +23,15 @@ public class MeasurementEffect implements CardEffect {
         List<SlotState> slots = new ArrayList<>(player.slots());
         SlotState slot = slots.get(targetSlotIndex);
 
+        List<Card> appliedCards = new ArrayList<>(slot.appliedCards());
+        appliedCards.add(card);
+
         SlotState updatedSlot = new SlotState(
                 slot.index(),
                 slot.ownerId(),
                 slot.initialDice(),
                 slot.dice(),
-                slot.appliedCards(),
+                appliedCards,
                 true
         );
 
