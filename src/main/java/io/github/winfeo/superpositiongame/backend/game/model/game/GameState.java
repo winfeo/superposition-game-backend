@@ -7,7 +7,8 @@ public record GameState(
         String currentPlayerId,
         Map<String, PlayerState> players,
         int turnNumber,
-        String activeSlotsRow //TODO id владельца слотов? подумать как переделать
+        String activeSlotsRow, //TODO id владельца слотов? подумать как переделать
+        String winnerId //TODO передавать отдельно победителя? Сделать энам с результатами игры?
 ) {
     public static GameState initial(
             PlayerState playerA,
@@ -21,6 +22,7 @@ public record GameState(
                         playerB.id(), playerB
                 ),
                 0,
+                null,
                 null
         );
     }
@@ -31,7 +33,8 @@ public record GameState(
                 this.currentPlayerId,
                 players,
                 this.turnNumber,
-                this.activeSlotsRow
+                this.activeSlotsRow,
+                this.winnerId
         );
     }
 
@@ -41,7 +44,8 @@ public record GameState(
                 this.currentPlayerId,
                 this.players,
                 this.turnNumber,
-                this.activeSlotsRow
+                this.activeSlotsRow,
+                this.winnerId
         );
     }
 
@@ -51,7 +55,8 @@ public record GameState(
                 currentPlayerId,
                 this.players,
                 this.turnNumber,
-                this.activeSlotsRow
+                this.activeSlotsRow,
+                this.winnerId
         );
     }
 
@@ -61,7 +66,19 @@ public record GameState(
                 this.currentPlayerId,
                 this.players,
                 turnNumber,
-                this.activeSlotsRow
+                this.activeSlotsRow,
+                this.winnerId
+        );
+    }
+
+    public GameState copyWithWinnerId(String winnerId) {
+        return new GameState(
+                this.phase,
+                this.currentPlayerId,
+                this.players,
+                this.turnNumber,
+                this.activeSlotsRow,
+                winnerId
         );
     }
 }

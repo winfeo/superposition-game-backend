@@ -18,7 +18,8 @@ public class SameRowUtil {
                 state.currentPlayerId(),
                 state.players(),
                 state.turnNumber(),
-                targetPlayerId
+                targetPlayerId,
+                state.winnerId()
         );
     }
 
@@ -30,7 +31,8 @@ public class SameRowUtil {
                 state.currentPlayerId(),
                 state.players(),
                 state.turnNumber(),
-                null
+                null,
+                state.winnerId()
         );
     }
 

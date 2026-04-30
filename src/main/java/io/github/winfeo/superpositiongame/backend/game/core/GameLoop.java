@@ -2,7 +2,6 @@ package io.github.winfeo.superpositiongame.backend.game.core;
 
 import io.github.winfeo.superpositiongame.backend.game.core.service.GameEventPublisher;
 import io.github.winfeo.superpositiongame.backend.game.model.card.Card;
-import io.github.winfeo.superpositiongame.backend.game.model.card.CardType;
 import io.github.winfeo.superpositiongame.backend.game.model.dice.Dice;
 import io.github.winfeo.superpositiongame.backend.game.model.dice.DiceState;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GamePhase;
@@ -13,9 +12,7 @@ import io.github.winfeo.superpositiongame.backend.util.CardGenerator;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
 
 @Component
 public class GameLoop {
@@ -181,8 +178,11 @@ public class GameLoop {
     }
 
     public GameState afterMove(GameState state, String playerId) {
-        if (isWinner(state, playerId)) {
-            return state.copyWithPhase(GamePhase.GAME_FINISHED);
+        String winnerId = findWinnerId(state);
+        if (winnerId != null) {
+            return state
+                    .copyWithPhase(GamePhase.GAME_FINISHED)
+                    .copyWithWinnerId(winnerId);
         }
 
         PlayerState playerState = state.players().get(playerId);
@@ -203,6 +203,7 @@ public class GameLoop {
                 updatedState.currentPlayerId(),
                 updatedState.players(),
                 updatedState.turnNumber(),
+                null,
                 null
         );
 
@@ -220,10 +221,21 @@ public class GameLoop {
         return afterTurn;
     }
 
-    private boolean isWinner(GameState state, String playerId) {
-        PlayerState player = state.players().get(playerId);
-        return player.slots().stream()
-                .allMatch(s -> s.dice().state() == s.dice().requiredState());
+    private String findWinnerId(GameState state) {
+        for (Map.Entry<String, PlayerState> entry: state.players().entrySet()) {
+            String playerId = entry.getKey();
+            PlayerState player = entry.getValue();
+
+            boolean isWinner = player.slots()
+                    .stream()
+                    .allMatch(slot ->
+                            slot.dice().state() == slot.dice().requiredState()
+                    );
+
+            if (isWinner) return playerId;
+        }
+
+        return null;
     }
 
     private String getNextPlayer(GameState state) {
