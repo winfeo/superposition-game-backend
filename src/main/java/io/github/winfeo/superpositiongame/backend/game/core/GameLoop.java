@@ -177,7 +177,11 @@ public class GameLoop {
                 .copyWithPhase(GamePhase.MOVE_START);
     }
 
-    public GameState afterMove(GameState state, String playerId) {
+    public GameState afterMove(
+            GameState state,
+            String playerId,
+            String gameId
+    ) {
         String winnerId = findWinnerId(state);
         if (winnerId != null) {
             return state
@@ -212,6 +216,7 @@ public class GameLoop {
         if (afterTurn.turnNumber() % 2 == 0) {
             publisher.sendToUser( //TODO убрать
                     playerId,
+                    gameId,
                     afterTurn
             );
 

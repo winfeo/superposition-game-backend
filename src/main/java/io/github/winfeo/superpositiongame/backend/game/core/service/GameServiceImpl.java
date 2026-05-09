@@ -85,7 +85,7 @@ public class GameServiceImpl implements GameService {
 
         GameState currentState = session.getGameState();
         GameState afterMoveState = gameEngine.applyMove(currentState, move);
-        GameState newPhaseState = gameLoop.afterMove(afterMoveState, userId);
+        GameState newPhaseState = gameLoop.afterMove(afterMoveState, userId, gameId);
 
         session.updateGameState(newPhaseState);
 
@@ -97,8 +97,9 @@ public class GameServiceImpl implements GameService {
         GameState state = session.getGameState();
         String playerA = session.getPlayerA();
         String playerB = session.getPlayerB();
+        String gameId = session.getGameId();
 
-        publisher.sendToUser(playerA, state);
-        publisher.sendToUser(playerB, state);
+        publisher.sendToUser(playerA, gameId, state);
+        publisher.sendToUser(playerB, gameId, state);
     }
 }
