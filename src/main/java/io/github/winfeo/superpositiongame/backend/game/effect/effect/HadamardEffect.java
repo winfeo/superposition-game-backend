@@ -37,7 +37,7 @@ public class HadamardEffect implements CardEffect {
             SlotState slot = slots.get(index);
             SlotState updatedSlot = slot;
 
-            if (!slot.isFrozen() && ArrowCompatibilityUtil.isCardCompatibleWithArrow(description, slot.dice())) {
+            if (!slot.isFrozen() /*&& ArrowCompatibilityUtil.isCardCompatibleWithArrow(description, slot.dice())*/) {
                 DiceState newState = switch (slot.dice().state()) {
                     case ZERO -> DiceState.PLUS;
                     case ONE -> DiceState.MINUS;
