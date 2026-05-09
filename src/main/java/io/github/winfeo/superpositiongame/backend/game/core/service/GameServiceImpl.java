@@ -9,6 +9,7 @@ import io.github.winfeo.superpositiongame.backend.game.model.move.Move;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class GameServiceImpl implements GameService {
     private final Map<String, GameSession> games = new ConcurrentHashMap<>();
+    private final Map<String, Set<String>> readyPlayers = new ConcurrentHashMap<>();
     private final GameEngine gameEngine;
     private final GameEventPublisher publisher;
     private final GameLoop gameLoop;
@@ -45,15 +47,33 @@ public class GameServiceImpl implements GameService {
 
         games.put(gameId, newSession);
 
+        readyPlayers.put(gameId, ConcurrentHashMap.newKeySet());
+
         publisher.sendGameStart(playerA, gameId);
         publisher.sendGameStart(playerB, gameId);
 
-        //TODO переделать точно! Пока костыль, потом присылать от клиента сообщение о готовности
-        //Подписывать на нужный топик на клиенте и только потом получать уже GameState
-        CompletableFuture.delayedExecutor(500, TimeUnit.MILLISECONDS)
-                .execute(() -> {
-                    broadcastState(newSession);
-                });
+//        //TODO переделать точно! Пока костыль, потом присылать от клиента сообщение о готовности
+//        //Подписывать на нужный топик на клиенте и только потом получать уже GameState
+//        CompletableFuture.delayedExecutor(500, TimeUnit.MILLISECONDS)
+//                .execute(() -> {
+//                    broadcastState(newSession);
+//                });
+    }
+
+    @Override
+    public void playerReady(String gameId, String userId) {
+        GameSession session = games.get(gameId);
+        if (session == null) return;
+
+        Set<String> readySet = readyPlayers.get(gameId);
+        if (readySet == null) return;
+
+        if (readySet.add(userId)) {
+            if (readySet.size() == 2) {
+                broadcastState(session);
+                readyPlayers.remove(gameId);
+            }
+        }
     }
 
     @Override
