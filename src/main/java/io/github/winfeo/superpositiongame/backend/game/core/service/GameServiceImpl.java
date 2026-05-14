@@ -6,6 +6,7 @@ import io.github.winfeo.superpositiongame.backend.game.model.game.GameSession;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameState;
 import io.github.winfeo.superpositiongame.backend.game.model.game.SlotOwner;
 import io.github.winfeo.superpositiongame.backend.game.model.move.Move;
+import io.github.winfeo.superpositiongame.backend.game.model.move.Surrender;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -51,13 +52,6 @@ public class GameServiceImpl implements GameService {
 
         publisher.sendGameStart(playerA, gameId);
         publisher.sendGameStart(playerB, gameId);
-
-//        //TODO переделать точно! Пока костыль, потом присылать от клиента сообщение о готовности
-//        //Подписывать на нужный топик на клиенте и только потом получать уже GameState
-//        CompletableFuture.delayedExecutor(500, TimeUnit.MILLISECONDS)
-//                .execute(() -> {
-//                    broadcastState(newSession);
-//                });
     }
 
     @Override
@@ -85,9 +79,11 @@ public class GameServiceImpl implements GameService {
 
         GameState currentState = session.getGameState();
         GameState afterMoveState = gameEngine.applyMove(currentState, move);
-        GameState newPhaseState = gameLoop.afterMove(afterMoveState, userId, gameId);
+        if (afterMoveState.winnerId() == null) {
+            afterMoveState = gameLoop.afterMove(afterMoveState, userId, gameId);
+        }
 
-        session.updateGameState(newPhaseState);
+        session.updateGameState(afterMoveState);
 
         broadcastState(session);
     }

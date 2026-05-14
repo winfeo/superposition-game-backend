@@ -35,10 +35,11 @@ public class GameEngine {
         handlers.put(SwapDices.class, (MoveHandler<SwapDices>) this::handleSwapDices);
         handlers.put(DoubleTapEffect.class, (MoveHandler<DoubleTapEffect>) this::handleDoubleTapEffect);
         handlers.put(ReshuffleCard.class, (MoveHandler<ReshuffleCard>) this::handleReshuffleCard);
+        handlers.put(Surrender.class, (MoveHandler<Surrender>) this::handleSurrenderMove);
     }
 
     public GameState applyMove(GameState state, Move move) {
-        if (!state.currentPlayerId().equals(move.playerId())) {
+        if (!(move instanceof Surrender) && !state.currentPlayerId().equals(move.playerId())) {
             return state;
         }
 
@@ -56,6 +57,20 @@ public class GameEngine {
             Move move
     ) {
         return handler.handle(state, (T) move);
+    }
+
+    private GameState handleSurrenderMove(GameState state, Surrender move) {
+        String surrenderingPlayerId = move.playerId();
+        String winnerId = state.players().keySet().stream()
+                .filter(id -> !id.equals(surrenderingPlayerId))
+                .findFirst()
+                .orElse(null);
+
+        if (winnerId == null) return state;
+
+        return state
+                .copyWithPhase(GamePhase.GAME_FINISHED) //TODO дописать класс. писать причину окончания игры?
+                .copyWithWinnerId(winnerId);
     }
 
     private GameState handlePlayCard(GameState state, PlayCard move) {

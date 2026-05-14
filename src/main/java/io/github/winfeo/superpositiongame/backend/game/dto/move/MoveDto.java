@@ -15,7 +15,8 @@ import io.github.winfeo.superpositiongame.backend.game.model.move.DoubleTapEffec
         @JsonSubTypes.Type(value = RotateDiceDto.class, name = "ROTATE_DICE"),
         @JsonSubTypes.Type(value = SwapDicesDto.class, name = "SWAP_DICES"),
         @JsonSubTypes.Type(value = DoubleTapEffectDto.class, name = "DOUBLE_TAP"),
-        @JsonSubTypes.Type(value = ReshuffleCardDto.class, name = "RESHUFFLE_CARD")
+        @JsonSubTypes.Type(value = ReshuffleCardDto.class, name = "RESHUFFLE_CARD"),
+        @JsonSubTypes.Type(value = SurrenderDto.class, name = "SURRENDER")
 })
 public interface MoveDto {
     String playerId();

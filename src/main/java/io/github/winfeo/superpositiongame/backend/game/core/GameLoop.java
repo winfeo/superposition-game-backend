@@ -185,7 +185,7 @@ public class GameLoop {
         String winnerId = findWinnerId(state);
         if (winnerId != null) {
             return state
-                    .copyWithPhase(GamePhase.GAME_FINISHED)
+                    .copyWithPhase(GamePhase.GAME_FINISHED) //TODO заканчивать игру на сервере, доделать
                     .copyWithWinnerId(winnerId);
         }
 

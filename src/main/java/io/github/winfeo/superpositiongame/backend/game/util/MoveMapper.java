@@ -53,6 +53,12 @@ public class MoveMapper {
             );
         }
 
+        if (dto instanceof SurrenderDto d) {
+            return new Surrender(
+                    d.playerId()
+            );
+        }
+
         throw new IllegalArgumentException("Unknown MoveDto: " + dto.getClass());
     }
 }

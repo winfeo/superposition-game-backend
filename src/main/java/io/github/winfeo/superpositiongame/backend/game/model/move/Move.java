@@ -5,7 +5,8 @@ public sealed interface Move permits
         RotateDice,
         SwapDices,
         DoubleTapEffect,
-        ReshuffleCard
+        ReshuffleCard,
+        Surrender
 {
     String playerId();
 }
