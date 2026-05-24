@@ -3,7 +3,7 @@ package io.github.winfeo.superpositiongame.backend.listener;
 import io.github.winfeo.superpositiongame.backend.dto.invitation.InvitationDto;
 import io.github.winfeo.superpositiongame.backend.dto.invitation.InvitationEventDto;
 import io.github.winfeo.superpositiongame.backend.dto.invitation.InvitationEventType;
-import io.github.winfeo.superpositiongame.backend.entity.Invitation;
+import io.github.winfeo.superpositiongame.backend.entity.general.Invitation;
 import io.github.winfeo.superpositiongame.backend.service.InvitationService;
 import io.github.winfeo.superpositiongame.backend.service.LobbyService;
 import io.github.winfeo.superpositiongame.backend.util.InvitationMapper;

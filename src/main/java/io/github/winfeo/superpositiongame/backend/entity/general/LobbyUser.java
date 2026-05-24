@@ -1,9 +1,9 @@
-package io.github.winfeo.superpositiongame.backend.entity;
+package io.github.winfeo.superpositiongame.backend.entity.general;
 
-public class User {
+public class LobbyUser {
     private final String id;
 
-    public User(String id) {
+    public LobbyUser(String id) {
         this.id = id;
     }
 
@@ -14,9 +14,9 @@ public class User {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof User)) return false;
-        User user = (User) o;
-        return id.equals(user.id);
+        if (!(o instanceof LobbyUser)) return false;
+        LobbyUser lobbyUser = (LobbyUser) o;
+        return id.equals(lobbyUser.id);
     }
 
     @Override

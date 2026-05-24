@@ -1,7 +1,7 @@
 package io.github.winfeo.superpositiongame.backend.util;
 
 import io.github.winfeo.superpositiongame.backend.dto.invitation.InvitationDto;
-import io.github.winfeo.superpositiongame.backend.entity.Invitation;
+import io.github.winfeo.superpositiongame.backend.entity.general.Invitation;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass

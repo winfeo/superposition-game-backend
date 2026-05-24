@@ -1,7 +1,6 @@
 package io.github.winfeo.superpositiongame.backend.service;
 
-import io.github.winfeo.superpositiongame.backend.dto.invitation.InvitationDto;
-import io.github.winfeo.superpositiongame.backend.entity.Invitation;
+import io.github.winfeo.superpositiongame.backend.entity.general.Invitation;
 
 import java.util.Set;
 
