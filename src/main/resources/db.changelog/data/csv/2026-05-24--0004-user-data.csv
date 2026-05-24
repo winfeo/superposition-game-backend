@@ -1,0 +1,4 @@
+auth_id;league_id;nickname;rating_points;wins_amount;games_played
+1;4;Test-One;1150;47;155
+2;4;Test-Two;1080;50;114
+3;5;Test-Three;1320;66;147

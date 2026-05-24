@@ -1,0 +1,11 @@
+code;title;min_rating;max_rating;sort_order;icon_url
+bronze_3;Бронза III;0;499;1;
+bronze_2;Бронза II;500;749;2;
+bronze_1;Бронза I;750;999;3;
+silver_3;Серебро III;1000;1199;4;
+silver_2;Серебро II;1200;1399;5;
+silver_1;Серебро I;1400;1599;6;
+gold_3;Золото III;1600;1799;7;
+gold_2;Золото II;1800;1999;8;
+gold_1;Золото I;2000;2199;9;
+platinum;Платина;2200;999999;10;

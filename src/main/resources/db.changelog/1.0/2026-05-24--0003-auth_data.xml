@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <property name="table.auth_data" value="auth_data"/>
+    <property name="idx.auth_email" value="idx_auth_email"/>
+
+    <!-- Таблица данных авторизации -->
+    <changeSet id="2026-05-24--0003-auth_data" author="winfeo">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="${table.auth_data}"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="${table.auth_data}">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="email" type="VARCHAR(100)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="password_hash" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Индекс для быстрого поиска пользователя по email при входе -->
+    <changeSet id="2026-05-24--0003-auth_data-email-idx" author="winfeo">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="${table.auth_data}" indexName="${idx.auth_email}"/>
+            </not>
+        </preConditions>
+
+        <createIndex tableName="${table.auth_data}" indexName="${idx.auth_email}">
+            <column name="email"/>
+        </createIndex>
+    </changeSet>
+    
+</databaseChangeLog>

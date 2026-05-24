@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <property name="table.game_player" value="game_player"/>
+    <property name="file.game_player" value="db.changelog/data/csv/2026-05-24--0007-game_player-data.csv"/>
+
+    <!-- game_player: загрузка данных -->
+    <changeSet id="2026-05-24--0007-game_player-data.xml" author="winfeo">
+        <loadData tableName="${table.game_player}" file="${file.game_player}"
+                  separator=";"
+                  quotchar='"'
+                  encoding="UTF-8"/>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <property name="table.game_player" value="game_player"/>
+    <property name="table.game" value="game"/>
+    <property name="table.user" value="user"/>
+    <property name="idx.game_player_unique" value="idx_game_player_unique"/>
+    <property name="idx.game_player_user" value="idx_game_player_user"/>
+
+    <!-- Таблица участников игр -->
+    <changeSet id="2026-05-24--0007-game_player" author="winfeo">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="${table.game_player}"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="${table.game_player}">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="game_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_game_player_game"
+                             referencedTableName="${table.game}"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_game_player_user"
+                             referencedTableName="${table.user}"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="rating_change" type="INT" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Один игрок не может участвовать в одной игре дважды (уникальный индекс) -->
+    <changeSet id="2026-05-24--0007-game_player-unique-idx" author="winfeo">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="${table.game_player}" indexName="${idx.game_player_unique}"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="${table.game_player}" indexName="${idx.game_player_unique}" unique="true">
+            <column name="game_id"/>
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Индекс для быстрого получения истории игр конкретного игрока -->
+    <changeSet id="2026-05-24--0007-game_player-user-idx" author="winfeo">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="${table.game_player}" indexName="${idx.game_player_user}"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="${table.game_player}" indexName="${idx.game_player_user}">
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
+    
+</databaseChangeLog>
