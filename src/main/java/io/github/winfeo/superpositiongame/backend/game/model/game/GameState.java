@@ -8,7 +8,9 @@ public record GameState(
         Map<String, PlayerState> players,
         int turnNumber,
         String activeSlotsRow, //TODO id владельца слотов? подумать как переделать
-        String winnerId //TODO передавать отдельно победителя? Сделать энам с результатами игры?
+        String winnerId, //TODO передавать отдельно победителя? Сделать энам с результатами игры?
+        Long serverTime,
+        Long turnEndsAt //Время на ход
 ) {
     public static GameState initial(
             PlayerState playerA,
@@ -23,6 +25,8 @@ public record GameState(
                 ),
                 0,
                 null,
+                null,
+                null,
                 null
         );
     }
@@ -34,7 +38,9 @@ public record GameState(
                 players,
                 this.turnNumber,
                 this.activeSlotsRow,
-                this.winnerId
+                this.winnerId,
+                this.serverTime,
+                this.turnEndsAt
         );
     }
 
@@ -45,7 +51,9 @@ public record GameState(
                 this.players,
                 this.turnNumber,
                 this.activeSlotsRow,
-                this.winnerId
+                this.winnerId,
+                this.serverTime,
+                this.turnEndsAt
         );
     }
 
@@ -56,7 +64,9 @@ public record GameState(
                 this.players,
                 this.turnNumber,
                 this.activeSlotsRow,
-                this.winnerId
+                this.winnerId,
+                this.serverTime,
+                this.turnEndsAt
         );
     }
 
@@ -67,7 +77,9 @@ public record GameState(
                 this.players,
                 turnNumber,
                 this.activeSlotsRow,
-                this.winnerId
+                this.winnerId,
+                this.serverTime,
+                this.turnEndsAt
         );
     }
 
@@ -78,7 +90,35 @@ public record GameState(
                 this.players,
                 this.turnNumber,
                 this.activeSlotsRow,
-                winnerId
+                winnerId,
+                this.serverTime,
+                this.turnEndsAt
+        );
+    }
+
+    public GameState copyWithTurnEndsAt(Long turnEndsAt) {
+        return new GameState(
+                this.phase,
+                this.currentPlayerId,
+                this.players,
+                this.turnNumber,
+                this.activeSlotsRow,
+                this.winnerId,
+                this.serverTime,
+                turnEndsAt
+        );
+    }
+
+    public GameState copyWithServerTime(Long serverTime) {
+        return new GameState(
+                this.phase,
+                this.currentPlayerId,
+                this.players,
+                this.turnNumber,
+                this.activeSlotsRow,
+                this.winnerId,
+                serverTime,
+                this.turnEndsAt
         );
     }
 }

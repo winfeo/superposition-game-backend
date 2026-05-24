@@ -19,7 +19,9 @@ public class SameRowUtil {
                 state.players(),
                 state.turnNumber(),
                 targetPlayerId,
-                state.winnerId()
+                state.winnerId(),
+                state.serverTime(),
+                state.turnEndsAt()
         );
     }
 
@@ -32,7 +34,9 @@ public class SameRowUtil {
                 state.players(),
                 state.turnNumber(),
                 null,
-                state.winnerId()
+                state.winnerId(),
+                state.serverTime(),
+                state.turnEndsAt()
         );
     }
 

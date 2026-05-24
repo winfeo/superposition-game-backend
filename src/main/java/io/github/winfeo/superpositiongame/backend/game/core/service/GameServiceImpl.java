@@ -7,6 +7,7 @@ import io.github.winfeo.superpositiongame.backend.game.model.game.GameState;
 import io.github.winfeo.superpositiongame.backend.game.model.game.SlotOwner;
 import io.github.winfeo.superpositiongame.backend.game.model.move.Move;
 import io.github.winfeo.superpositiongame.backend.game.model.move.Surrender;
+import io.github.winfeo.superpositiongame.backend.repository.GameRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -18,17 +19,20 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 public class GameServiceImpl implements GameService {
-    private final Map<String, GameSession> games = new ConcurrentHashMap<>();
+    private final GameRepository repository;
+//    private final Map<String, GameSession> games = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> readyPlayers = new ConcurrentHashMap<>();
     private final GameEngine gameEngine;
     private final GameEventPublisher publisher;
     private final GameLoop gameLoop;
 
     public GameServiceImpl(
+            GameRepository repository,
             GameEngine gameEngine,
             GameEventPublisher publisher,
             GameLoop gameLoop
     ) {
+        this.repository = repository;
         this.publisher = publisher;
         this.gameEngine = gameEngine;
         this.gameLoop = gameLoop;
@@ -46,7 +50,8 @@ public class GameServiceImpl implements GameService {
                 initialState
         );
 
-        games.put(gameId, newSession);
+//        games.put(gameId, newSession);
+        repository.save(newSession);
 
         readyPlayers.put(gameId, ConcurrentHashMap.newKeySet());
 
@@ -56,7 +61,7 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public void playerReady(String gameId, String userId) {
-        GameSession session = games.get(gameId);
+        GameSession session = repository.findById(gameId);
         if (session == null) return;
 
         Set<String> readySet = readyPlayers.get(gameId);
@@ -72,7 +77,7 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public void handleMove(String gameId, Move move, String userId) {
-        GameSession session = games.get(gameId);
+        GameSession session = repository.findById(gameId);
 
         if (session == null) return;
         if (!move.playerId().equals(userId)) return;
@@ -84,13 +89,17 @@ public class GameServiceImpl implements GameService {
         }
 
         session.updateGameState(afterMoveState);
+        repository.save(session);
 
         broadcastState(session);
     }
 
     @Override
     public void broadcastState(GameSession session) {
-        GameState state = session.getGameState();
+        GameState state = session.getGameState().copyWithServerTime(System.currentTimeMillis());
+        session.updateGameState(state);
+        repository.save(session);
+
         String playerA = session.getPlayerA();
         String playerB = session.getPlayerB();
         String gameId = session.getGameId();

@@ -41,7 +41,9 @@ public class MultiplicationEffect implements CardEffect {
                 updatedPlayers,
                 state.turnNumber(),
                 null,
-                state.winnerId()
+                state.winnerId(),
+                state.serverTime(),
+                state.turnEndsAt()
         );
     }
 

@@ -18,6 +18,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class GameLoop {
     private final GameEventPublisher publisher;
     private final CardGenerator cardGenerator;
+    private static final long TIMER_TURN_DURATION_MS = 45_000;
 
     public GameLoop (
             GameEventPublisher publisher,
@@ -156,9 +157,14 @@ public class GameLoop {
     }
 
     public GameState startTurn(GameState state, String playerId) {
+        long now = System.currentTimeMillis(); //Текущее время сервера
+        long turnEndsAt = now + TIMER_TURN_DURATION_MS; //Старт таймера
+
         return state
                 .copyWithCurrentPlayerId(playerId)
-                .copyWithPhase(GamePhase.MOVE_START);
+                .copyWithPhase(GamePhase.MOVE_START)
+                .copyWithServerTime(now)
+                .copyWithTurnEndsAt(turnEndsAt);
     }
 
     private GameState endTurn(GameState state) {
@@ -170,11 +176,16 @@ public class GameLoop {
 
         int newTurnNumber = state.turnNumber() + 1;
 
+        long now = System.currentTimeMillis();
+        long turnEndsAt = now + TIMER_TURN_DURATION_MS;
+
         return state
                 .copyWithPlayers(updated)
                 .copyWithTurnNumber(newTurnNumber)
                 .copyWithCurrentPlayerId(next)
-                .copyWithPhase(GamePhase.MOVE_START);
+                .copyWithPhase(GamePhase.MOVE_START)
+                .copyWithServerTime(now)
+                .copyWithTurnEndsAt(turnEndsAt);
     }
 
     public GameState afterMove(
@@ -208,7 +219,9 @@ public class GameLoop {
                 updatedState.players(),
                 updatedState.turnNumber(),
                 null,
-                null
+                null,
+                updatedState.serverTime(),
+                updatedState.turnEndsAt()
         );
 
         GameState afterTurn = endTurn(clearedState);
@@ -247,5 +260,20 @@ public class GameLoop {
         List<String> ids = new ArrayList<>(state.players().keySet());
         int idx = ids.indexOf(state.currentPlayerId());
         return ids.get((idx + 1) % ids.size());
+    }
+
+    public GameState forceEndTurn(GameState state) { //если таймер закончился
+        GameState clearedState = new GameState(
+                state.phase(),
+                state.currentPlayerId(),
+                state.players(),
+                state.turnNumber(),
+                null,
+                state.winnerId(),
+                state.serverTime(),
+                state.turnEndsAt()
+        );
+
+        return endTurn(clearedState);
     }
 }
