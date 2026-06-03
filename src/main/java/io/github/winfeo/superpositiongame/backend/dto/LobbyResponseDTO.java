@@ -5,16 +5,16 @@ import io.github.winfeo.superpositiongame.backend.entity.general.LobbyUser;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class LobbyResponseDto { //TODO переделать
-    private Set<UserDto> users;
+public class LobbyResponseDTO {
+    private Set<LobbyUserDTO> users;
 
-    public LobbyResponseDto(Set<LobbyUser> LobbyUsers) {
+    public LobbyResponseDTO(Set<LobbyUser> LobbyUsers) {
         this.users = LobbyUsers.stream()
-                .map(user -> new UserDto(user.getId()))
+                .map(user -> new LobbyUserDTO(user.getId()))
                 .collect(Collectors.toSet());
     }
 
-    public Set<UserDto> getUsers() {
+    public Set<LobbyUserDTO> getUsers() {
         return users;
     }
 }

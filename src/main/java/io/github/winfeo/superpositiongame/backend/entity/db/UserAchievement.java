@@ -6,8 +6,6 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
 @Setter
@@ -32,7 +30,4 @@ public class UserAchievement {
     @CreationTimestamp
     @Column(name = "unlocked_at", nullable = false, updatable = false)
     private LocalDateTime unlockedAt;
-
-    @OneToMany(mappedBy = "achievement", fetch = FetchType.LAZY)
-    private List<UserAchievement> userAchievements = new ArrayList<>();
 }

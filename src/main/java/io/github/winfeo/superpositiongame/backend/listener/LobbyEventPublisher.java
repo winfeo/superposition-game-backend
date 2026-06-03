@@ -1,6 +1,6 @@
 package io.github.winfeo.superpositiongame.backend.listener;
 
-import io.github.winfeo.superpositiongame.backend.dto.LobbyResponseDto;
+import io.github.winfeo.superpositiongame.backend.dto.LobbyResponseDTO;
 import io.github.winfeo.superpositiongame.backend.entity.general.LobbyUser;
 import io.github.winfeo.superpositiongame.backend.service.LobbyService;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -28,7 +28,7 @@ public class LobbyEventPublisher {
         System.out.print("USER IDs: ");
         LobbyUsers.forEach(user -> System.out.print(user.getId() + " "));
         System.out.println();
-        LobbyResponseDto dto = new LobbyResponseDto(LobbyUsers);
+        LobbyResponseDTO dto = new LobbyResponseDTO(LobbyUsers);
         messagingTemplate.convertAndSend("/topic/lobby", dto);
         System.out.println("SENT TO /topic/lobby");
     }

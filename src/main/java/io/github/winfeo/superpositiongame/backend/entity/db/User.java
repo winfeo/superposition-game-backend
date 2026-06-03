@@ -3,6 +3,7 @@ package io.github.winfeo.superpositiongame.backend.entity.db;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -12,13 +13,14 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@Table(name = "user")
+@Table(name = "users")
+@ToString(exclude = {"gamePlayers", "userAchievements"})
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
     @JoinColumn(name = "auth_id", unique = true, nullable = false)
     private AuthData authData;
 
@@ -47,4 +49,9 @@ public class User {
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<GamePlayer> gamePlayers = new ArrayList<>();
+
+    public void setAuthData(AuthData authData) {
+        this.authData = authData;
+        authData.setUser(this);
+    }
 }

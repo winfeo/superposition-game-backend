@@ -1,8 +1,8 @@
 package io.github.winfeo.superpositiongame.backend.dto;
 
-public class UserDto {
+public class LobbyUserDTO {
     private String id;
-    public UserDto(String id) {
+    public LobbyUserDTO(String id) {
         this.id = id;
     }
 

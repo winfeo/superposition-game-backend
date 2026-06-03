@@ -4,7 +4,7 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <property name="table.user" value="user"/>
+    <property name="table.user" value="users"/>
     <property name="table.auth_data" value="auth_data"/>
     <property name="table.league" value="league"/>
     <property name="idx.user_nickname" value="idx_user_nickname"/>

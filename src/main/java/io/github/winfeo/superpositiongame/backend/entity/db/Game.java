@@ -3,6 +3,7 @@ package io.github.winfeo.superpositiongame.backend.entity.db;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -13,6 +14,7 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "game")
+@ToString(exclude = "gamePlayers")
 public class Game {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
