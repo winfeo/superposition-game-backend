@@ -1,4 +1,4 @@
-package io.github.winfeo.superpositiongame.backend.repository;
+package io.github.winfeo.superpositiongame.backend.repository.memory;
 
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameSession;
 

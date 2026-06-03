@@ -5,7 +5,7 @@ import io.github.winfeo.superpositiongame.backend.game.core.GameLoop;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameSession;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameState;
 import io.github.winfeo.superpositiongame.backend.game.model.move.Move;
-import io.github.winfeo.superpositiongame.backend.repository.ActiveGameRepository;
+import io.github.winfeo.superpositiongame.backend.repository.memory.ActiveGameRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;

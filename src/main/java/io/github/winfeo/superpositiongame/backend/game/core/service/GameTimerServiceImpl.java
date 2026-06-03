@@ -4,7 +4,7 @@ import io.github.winfeo.superpositiongame.backend.game.core.GameLoop;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GamePhase;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameSession;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameState;
-import io.github.winfeo.superpositiongame.backend.repository.ActiveGameRepository;
+import io.github.winfeo.superpositiongame.backend.repository.memory.ActiveGameRepository;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
