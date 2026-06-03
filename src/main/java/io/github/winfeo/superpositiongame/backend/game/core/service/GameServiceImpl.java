@@ -4,22 +4,18 @@ import io.github.winfeo.superpositiongame.backend.game.core.GameEngine;
 import io.github.winfeo.superpositiongame.backend.game.core.GameLoop;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameSession;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameState;
-import io.github.winfeo.superpositiongame.backend.game.model.game.SlotOwner;
 import io.github.winfeo.superpositiongame.backend.game.model.move.Move;
-import io.github.winfeo.superpositiongame.backend.game.model.move.Surrender;
-import io.github.winfeo.superpositiongame.backend.repository.GameRepository;
+import io.github.winfeo.superpositiongame.backend.repository.ActiveGameRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class GameServiceImpl implements GameService {
-    private final GameRepository repository;
+    private final ActiveGameRepository repository;
 //    private final Map<String, GameSession> games = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> readyPlayers = new ConcurrentHashMap<>();
     private final GameEngine gameEngine;
@@ -27,7 +23,7 @@ public class GameServiceImpl implements GameService {
     private final GameLoop gameLoop;
 
     public GameServiceImpl(
-            GameRepository repository,
+            ActiveGameRepository repository,
             GameEngine gameEngine,
             GameEventPublisher publisher,
             GameLoop gameLoop

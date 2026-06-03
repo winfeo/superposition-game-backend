@@ -4,7 +4,7 @@ import io.github.winfeo.superpositiongame.backend.game.core.GameLoop;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GamePhase;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameSession;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameState;
-import io.github.winfeo.superpositiongame.backend.repository.GameRepository;
+import io.github.winfeo.superpositiongame.backend.repository.ActiveGameRepository;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -12,12 +12,12 @@ import org.springframework.stereotype.Component;
 @Component
 @EnableScheduling
 public class GameTimerServiceImpl implements GameTimerService {
-    private final GameRepository repository;
+    private final ActiveGameRepository repository;
     private final GameLoop gameLoop;
     private final GameService gameService;
 
     public GameTimerServiceImpl(
-            GameRepository repository,
+            ActiveGameRepository repository,
             GameLoop gameLoop,
             GameService gameService
     ) {
