@@ -8,4 +8,5 @@ public interface ActiveGameRepository {
     void save(GameSession session);
     GameSession findById(String gameId);
     Collection<GameSession> getAllGames();
+    void delete(String gameId);
 }

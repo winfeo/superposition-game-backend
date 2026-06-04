@@ -26,4 +26,7 @@ public class ActiveGameRepositoryImpl implements ActiveGameRepository {
     public Collection<GameSession> getAllGames() {
         return games.values();
     }
+
+    @Override
+    public void delete(String gameId) { games.remove(gameId); }
 }
