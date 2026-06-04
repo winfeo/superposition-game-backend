@@ -5,6 +5,9 @@ import io.github.winfeo.superpositiongame.backend.game.core.GameLoop;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameSession;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameState;
 import io.github.winfeo.superpositiongame.backend.game.model.move.Move;
+import io.github.winfeo.superpositiongame.backend.repository.GamePlayerRepository;
+import io.github.winfeo.superpositiongame.backend.repository.GameRepository;
+import io.github.winfeo.superpositiongame.backend.repository.UserRepository;
 import io.github.winfeo.superpositiongame.backend.repository.memory.ActiveGameRepository;
 import org.springframework.stereotype.Service;
 
@@ -15,19 +18,21 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class GameServiceImpl implements GameService {
+    private final GameResultService gameResultService;
     private final ActiveGameRepository repository;
-//    private final Map<String, GameSession> games = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> readyPlayers = new ConcurrentHashMap<>();
     private final GameEngine gameEngine;
     private final GameEventPublisher publisher;
     private final GameLoop gameLoop;
 
     public GameServiceImpl(
+            GameResultService gameResultService,
             ActiveGameRepository repository,
             GameEngine gameEngine,
             GameEventPublisher publisher,
             GameLoop gameLoop
     ) {
+        this.gameResultService = gameResultService;
         this.repository = repository;
         this.publisher = publisher;
         this.gameEngine = gameEngine;
@@ -46,7 +51,6 @@ public class GameServiceImpl implements GameService {
                 initialState
         );
 
-//        games.put(gameId, newSession);
         repository.save(newSession);
 
         readyPlayers.put(gameId, ConcurrentHashMap.newKeySet());
@@ -80,13 +84,16 @@ public class GameServiceImpl implements GameService {
 
         GameState currentState = session.getGameState();
         GameState afterMoveState = gameEngine.applyMove(currentState, move);
-        if (afterMoveState.winnerId() == null) {
-            afterMoveState = gameLoop.afterMove(afterMoveState, userId, gameId);
+        afterMoveState = gameLoop.afterMove(afterMoveState, userId, gameId);
+        session.updateGameState(afterMoveState);
+
+        if (afterMoveState.winnerId() != null) {
+            broadcastState(session);
+            finishGame(session);
+            return;
         }
 
-        session.updateGameState(afterMoveState);
         repository.save(session);
-
         broadcastState(session);
     }
 
@@ -102,5 +109,14 @@ public class GameServiceImpl implements GameService {
 
         publisher.sendToUser(playerA, gameId, state);
         publisher.sendToUser(playerB, gameId, state);
+    }
+
+    private void finishGame(GameSession session) {
+        if (session == null || repository.findById(session.getGameId()) == null) {
+            return;
+        }
+
+        gameResultService.saveGameResult(session);
+        repository.delete(session.getGameId());
     }
 }

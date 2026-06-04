@@ -21,7 +21,7 @@ public class Game {
     private long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "winner_id", nullable = false)
+    @JoinColumn(name = "winner_id")
     private User winner;
 
     @Column(name = "total_moves", nullable = false)
