@@ -1,6 +1,6 @@
 package io.github.winfeo.superpositiongame.backend.dto.invitation;
 
-public record InvitationEventDto(
+public record InvitationEventDTO(
     InvitationEventType type,
-    InvitationDto invitation
+    InvitationDTO invitation
 ) { }

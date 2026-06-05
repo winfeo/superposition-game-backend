@@ -1,7 +1,7 @@
 package io.github.winfeo.superpositiongame.backend.controller;
 
-import io.github.winfeo.superpositiongame.backend.dto.invitation.InvitationDto;
-import io.github.winfeo.superpositiongame.backend.dto.invitation.InvitationEventDto;
+import io.github.winfeo.superpositiongame.backend.dto.invitation.InvitationDTO;
+import io.github.winfeo.superpositiongame.backend.dto.invitation.InvitationEventDTO;
 import io.github.winfeo.superpositiongame.backend.dto.invitation.InvitationEventType;
 import io.github.winfeo.superpositiongame.backend.entity.general.Invitation;
 import io.github.winfeo.superpositiongame.backend.game.core.service.GameService;
@@ -32,16 +32,12 @@ public class InvitationController {
     }
 
     @MessageMapping("/invite")
-    public void sendInvite(InvitationDto dto) {
-        Invitation invitation = new Invitation(
-                dto.senderId(),
-                dto.receiverId(),
-                Instant.now().toString()
-        );
+    public void sendInvite(InvitationDTO dto) {
+        Invitation invitation = InvitationMapper.convertToDomain(dto);
 
         invitationService.addInvitation(invitation);
 
-        InvitationEventDto event = new InvitationEventDto(
+        InvitationEventDTO event = new InvitationEventDTO(
                 InvitationEventType.INVITE_SEND,
                 InvitationMapper.convertToDto(invitation)
         );
@@ -52,11 +48,11 @@ public class InvitationController {
     }
 
     @MessageMapping("/invite.reject")
-    public void rejectInvite(InvitationDto dto) {
+    public void rejectInvite(InvitationDTO dto) {
         Invitation invitation = InvitationMapper.convertToDomain(dto);
         invitationService.removeInvitation(invitation);
 
-        InvitationEventDto event = new InvitationEventDto(
+        InvitationEventDTO event = new InvitationEventDTO(
                 InvitationEventType.INVITE_REMOVED,
                 dto
         );
@@ -67,11 +63,11 @@ public class InvitationController {
     }
 
     @MessageMapping("/invite.accept")
-    public void acceptInvite(InvitationDto dto) {
+    public void acceptInvite(InvitationDTO dto) {
         Invitation invitation = InvitationMapper.convertToDomain(dto);
         invitationService.removeInvitation(invitation);
 
-        InvitationEventDto event = new InvitationEventDto(
+        InvitationEventDTO event = new InvitationEventDTO(
                 InvitationEventType.INVITE_ACCEPTED,
                 dto
         );
@@ -107,7 +103,7 @@ public class InvitationController {
         System.out.println("Found " + userInvitations.size() + " invitations for user");
 
         userInvitations.forEach(inv -> {
-            InvitationEventDto event = new InvitationEventDto(
+            InvitationEventDTO event = new InvitationEventDTO(
                     InvitationEventType.INIT,
                     InvitationMapper.convertToDto(inv)
             );
@@ -115,7 +111,7 @@ public class InvitationController {
         });
 
         if (userInvitations.isEmpty()) {
-            InvitationEventDto emptyEvent = new InvitationEventDto(
+            InvitationEventDTO emptyEvent = new InvitationEventDTO(
                     InvitationEventType.INIT,
                     null
             );
