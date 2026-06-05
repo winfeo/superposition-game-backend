@@ -15,6 +15,7 @@ public class UserMapper {
 
     public UserDTO convertToDto(User user) {
         UserDTO userDTO = new UserDTO();
+        userDTO.setEmail(user.getEmail());
         userDTO.setId(user.getId());
         userDTO.setLeague(user.getLeague().getTitle());
         userDTO.setNickname(user.getNickname());

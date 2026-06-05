@@ -42,7 +42,7 @@ public class UserServiceImpl implements UserService {
     public UserDTO getUserById(Long id) {
         return userRepository.findById(id)
                 .map(UserMapper::convertToDto)
-                .orElseThrow(() -> new UserNotFoundException("Пользователь с id " + id + " не найден."));
+                .orElseThrow(() -> new UserNotFoundException("Пользователь с id " + id + " не найден"));
     }
 
     @Override
@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService {
     public UserDTO getUserByNickname(String nickname) {
         return userRepository.findByNickname(nickname)
                 .map(UserMapper::convertToDto)
-                .orElseThrow(() -> new UserNotFoundException("Пользователь c ником " + nickname + " не найден."));
+                .orElseThrow(() -> new UserNotFoundException("Пользователь c ником " + nickname + " не найден"));
     }
 
     @Override
@@ -59,7 +59,7 @@ public class UserServiceImpl implements UserService {
         Optional<AuthData> authData = authDataRepository.findByEmail(email);
 
         if (authData.isEmpty()) {
-            throw new UserNotFoundException("Пользователь c почтой " + email + " не найден.");
+            throw new UserNotFoundException("Пользователь c почтой " + email + " не найден");
         }
 
         User user = authData.get().getUser();
@@ -71,17 +71,17 @@ public class UserServiceImpl implements UserService {
     public UserDTO createUser(NewUserDTO dto) {
         boolean isEmailExists = authDataRepository.existsByEmail(dto.getEmail());
         if (isEmailExists) {
-            throw new AuthDataEmailAlreadyTakenException("Почта " + dto.getEmail() + " уже занята.");
+            throw new AuthDataEmailAlreadyTakenException("Почта " + dto.getEmail() + " уже занята");
         }
 
         League startLeague = leagueRepository.findByMinRating(0)
-                .orElseThrow(() -> new LeagueNotFoundException("Лига с мин. рейтингом " + 0 + " не найдена."));
+                .orElseThrow(() -> new LeagueNotFoundException("Лига с мин. рейтингом " + 0 + " не найдена"));
 
         User user = UserMapper.convertToDomain(dto, startLeague); //TODO добавить encoder
         try {
             return UserMapper.convertToDto(userRepository.save(user));
         } catch (DataIntegrityViolationException e) {
-            throw new UserSaveFailedException("Не удалось сохранить пользователя.");
+            throw new UserSaveFailedException("Не удалось сохранить пользователя");
         }
     }
 
@@ -89,13 +89,13 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDTO updateUser(UpdateUserDTO dto) {
         User user = userRepository.findById(dto.getId()).orElseThrow(() ->
-                new UserNotFoundException("Пользователь c id " + dto.getId() + " не найден."));
+                new UserNotFoundException("Пользователь c id " + dto.getId() + " не найден"));
 
         AuthData authData = user.getAuthData();
         String newEmail = dto.getEmail();
         if (!authData.getEmail().equals(newEmail) && !newEmail.isEmpty()) {
             if (authDataRepository.existsByEmail(newEmail)) {
-                throw new AuthDataEmailAlreadyTakenException("Почта " + newEmail + " уже занята.");
+                throw new AuthDataEmailAlreadyTakenException("Почта " + newEmail + " уже занята");
             }
 
             authData.setEmail(newEmail);
@@ -104,7 +104,11 @@ public class UserServiceImpl implements UserService {
         String newNickname = dto.getNickname();
         if (!user.getNickname().equals(newEmail) && !newEmail.isEmpty()) {
             if (userRepository.existsByNickname(newNickname)) {
-                throw new NicknameAlreadyTakenException("Никнейм " + newNickname + " уже занят.");
+                throw new NicknameAlreadyTakenException("Никнейм " + newNickname + " уже занят");
+            }
+
+            if (newNickname.isBlank()) {
+                throw new NicknameIsEmptyException("Никнейм не должен быть пустым");
             }
 
             user.setNickname(newNickname);
@@ -117,7 +121,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void deleteUser(Long id) {
         if (!userRepository.existsById(id)) {
-            throw new UserNotFoundException("Пользователь c id " + id + " не найден.");
+            throw new UserNotFoundException("Пользователь c id " + id + " не найден");
         }
         userRepository.deleteById(id);
     }

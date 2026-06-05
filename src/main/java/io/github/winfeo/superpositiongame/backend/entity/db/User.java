@@ -54,4 +54,6 @@ public class User {
         this.authData = authData;
         authData.setUser(this);
     }
+
+    public String getEmail() { return authData.getEmail(); }
 }

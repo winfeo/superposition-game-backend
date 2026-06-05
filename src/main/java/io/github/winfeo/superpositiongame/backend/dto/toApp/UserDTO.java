@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 @Data
 public class UserDTO {
     private long id;
+    private String email;
     private String league;
     private String nickname;
     private int ratingPoints = 0;
