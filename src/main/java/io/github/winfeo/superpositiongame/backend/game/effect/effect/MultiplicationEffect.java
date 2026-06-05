@@ -19,6 +19,7 @@ public class MultiplicationEffect implements CardEffect {
 
         PlayerState updatedPlayer = new PlayerState(
                 player.id(),
+                player.nickname(),
                 player.hand(),
                 player.slots(),
                 player.skipNextTurn(),

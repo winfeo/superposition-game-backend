@@ -1,5 +1,6 @@
 package io.github.winfeo.superpositiongame.backend.game.core;
 
+import io.github.winfeo.superpositiongame.backend.entity.db.User;
 import io.github.winfeo.superpositiongame.backend.game.core.service.GameEventPublisher;
 import io.github.winfeo.superpositiongame.backend.game.model.card.Card;
 import io.github.winfeo.superpositiongame.backend.game.model.dice.Dice;
@@ -8,6 +9,7 @@ import io.github.winfeo.superpositiongame.backend.game.model.game.GamePhase;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameState;
 import io.github.winfeo.superpositiongame.backend.game.model.game.PlayerState;
 import io.github.winfeo.superpositiongame.backend.game.model.game.SlotState;
+import io.github.winfeo.superpositiongame.backend.repository.UserRepository;
 import io.github.winfeo.superpositiongame.backend.util.CardGenerator;
 import org.springframework.stereotype.Component;
 
@@ -16,21 +18,43 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @Component
 public class GameLoop {
+    private final UserRepository userRepository;
     private final GameEventPublisher publisher;
     private final CardGenerator cardGenerator;
     private static final long TIMER_TURN_DURATION_MS = 45_000;
 
     public GameLoop (
+            UserRepository userRepository,
             GameEventPublisher publisher,
             CardGenerator cardGenerator
     ) { //TODO убрать. Пока так, чтобы на клиенте обновлялось состояние карт у второго игрока
+        this.userRepository = userRepository;
         this.publisher = publisher;
         this.cardGenerator = cardGenerator;
     }
     public GameState startGame(String playerA_id, String playerB_id) {
         //TODO случайно выбирать, кто первый ходит
-        PlayerState playerA = new PlayerState(playerA_id);
-        PlayerState playerB = new PlayerState(playerB_id);
+
+        String playerNicknameA = null;
+        try {
+            Long userId = Long.parseLong(playerA_id);
+            User user = userRepository.findById(userId).orElse(null);
+            if (user != null) {
+                playerNicknameA = user.getNickname();
+            }
+        } catch (NumberFormatException ignored) { }
+
+        String playerNicknameB = null;
+        try {
+            Long userId = Long.parseLong(playerB_id);
+            User user = userRepository.findById(userId).orElse(null);
+            if (user != null) {
+                playerNicknameB = user.getNickname();
+            }
+        } catch (NumberFormatException ignored) { }
+
+        PlayerState playerA = new PlayerState(playerA_id, playerNicknameA);
+        PlayerState playerB = new PlayerState(playerB_id, playerNicknameB);
 
         GameState state = GameState.initial(playerA, playerB);
         state = initSlots(state);

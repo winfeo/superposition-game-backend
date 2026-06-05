@@ -23,7 +23,7 @@ public record GameState(
                         playerA.id(), playerA,
                         playerB.id(), playerB
                 ),
-                0,
+                1,
                 null,
                 null,
                 null,
