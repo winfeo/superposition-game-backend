@@ -19,11 +19,14 @@ public class GameHistoryMapper {
         if (opponent != null) opponentNickname = opponent.getUser().getNickname();
         else opponentNickname = "Гость";
 
+        String playedAt = game.getPlayedAt().toString();
+
         return new GameHistoryDTO(
                 isWinner,
                 opponentNickname,
                 game.getTotalMoves(),
-                currentPlayer.getRatingChange()
+                currentPlayer.getRatingChange(),
+                playedAt
         );
     }
 }

@@ -5,6 +5,7 @@ import io.github.winfeo.superpositiongame.backend.entity.general.Invitation;
 import lombok.experimental.UtilityClass;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @UtilityClass
 public class InvitationMapper {
@@ -13,7 +14,7 @@ public class InvitationMapper {
                 dto.senderId(),
                 dto.senderNickname(),
                 dto.receiverId(),
-                Instant.now().toString()
+                LocalDateTime.now().toString()
         );
     }
 

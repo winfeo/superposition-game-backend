@@ -4,5 +4,6 @@ public record GameHistoryDTO (
         boolean isWinner,
         String opponentNickname,
         int totalMoves,
-        int ratingChange
+        int ratingChange,
+        String playedAt
 ) {}
