@@ -25,4 +25,6 @@ public interface GamePlayerRepository extends JpaRepository<GamePlayer, Long> {
             @Param("gameId") Long gameId,
             @Param("userId") Long userId
     );
+
+    void deleteByUserId(Long userId);
 }

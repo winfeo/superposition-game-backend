@@ -7,9 +7,7 @@ import io.github.winfeo.superpositiongame.backend.entity.db.AuthData;
 import io.github.winfeo.superpositiongame.backend.entity.db.League;
 import io.github.winfeo.superpositiongame.backend.entity.db.User;
 import io.github.winfeo.superpositiongame.backend.exception.*;
-import io.github.winfeo.superpositiongame.backend.repository.AuthDataRepository;
-import io.github.winfeo.superpositiongame.backend.repository.LeagueRepository;
-import io.github.winfeo.superpositiongame.backend.repository.UserRepository;
+import io.github.winfeo.superpositiongame.backend.repository.*;
 import io.github.winfeo.superpositiongame.backend.service.UserService;
 import io.github.winfeo.superpositiongame.backend.util.UserMapper;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +25,9 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final AuthDataRepository authDataRepository;
     private final LeagueRepository leagueRepository;
+    private final GameRepository gameRepository;
+    private final UserAchievementRepository achievementRepository;
+    private final GamePlayerRepository playerRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -102,7 +103,7 @@ public class UserServiceImpl implements UserService {
         }
 
         String newNickname = dto.getNickname();
-        if (!user.getNickname().equals(newEmail) && !newEmail.isEmpty()) {
+        if (!user.getNickname().equals(newNickname) && !newNickname.isEmpty()) {
             if (userRepository.existsByNickname(newNickname)) {
                 throw new NicknameAlreadyTakenException("Никнейм " + newNickname + " уже занят");
             }
@@ -123,6 +124,11 @@ public class UserServiceImpl implements UserService {
         if (!userRepository.existsById(id)) {
             throw new UserNotFoundException("Пользователь c id " + id + " не найден");
         }
+
+        gameRepository.resetWinnerId(id);
+        achievementRepository.deleteByUserId(id);
+        playerRepository.deleteByUserId(id);
+
         userRepository.deleteById(id);
     }
 }
