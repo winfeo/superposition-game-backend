@@ -12,6 +12,8 @@
     <include file="db.changelog/1.0/2026-05-24--0005-user_achievement.xml"/>
     <include file="db.changelog/2.0/2026-06-04--0006-game.xml"/>
     <include file="db.changelog/1.0/2026-05-24--0007-game_player.xml"/>
+    <include file="db.changelog/1.0/2026-06-08--0008-authority.xml"/>
+    <include file="db.changelog/1.0/2026-06-08--0009-user_authority.xml"/>
 
     <!-- Загрузка данных из csv -->
     <include file="db.changelog/data/2026-05-24--0001-achievement-data.xml"/>
@@ -21,5 +23,7 @@
     <include file="db.changelog/data/2026-05-24--0005-user_achievement-data.xml"/>
     <include file="db.changelog/data/2026-05-24--0006-game-data.xml"/>
     <include file="db.changelog/data/2026-05-24--0007-game_player-data.xml"/>
+    <include file="db.changelog/data/2026-06-08--0008-authority-data.xml"/>
+    <include file="db.changelog/data/2026-06-08--0009-user_authority-data.xml"/>
 
 </databaseChangeLog>
