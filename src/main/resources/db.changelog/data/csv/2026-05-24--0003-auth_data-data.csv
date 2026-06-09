@@ -1,4 +1,4 @@
 email;password_hash
-test1;1
-test2;2
-test3;3
+test1;$2a$12$baLBivevuuLXOUow5f/4yexyx9lafxRMC2zB.fgv0HrOk0t42.yR6
+test2;$2a$12$QxSEvGt3cIzlew8No/Exg.kW0LlqzbrGcYgcSEcx1aPZ4jAfyC8UW
+test3;$2a$12$rys3GKNJu1/PKzOCXo8CKe2d89iusr8PjLRo06LWiqzg7veQ3ZWWm

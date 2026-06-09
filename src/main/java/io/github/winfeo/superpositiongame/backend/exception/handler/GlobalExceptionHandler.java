@@ -39,4 +39,14 @@ public class GlobalExceptionHandler {
         String message = "Не удалось сохранить пользователя.";
         return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(AuthorityNotFoundException.class)
+    public ResponseEntity<String> handleAuthorityNotFoundException(AuthorityNotFoundException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(EmailIsEmptyException.class)
+    public ResponseEntity<String> handleEmailIsEmptyException(EmailIsEmptyException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+    }
 }

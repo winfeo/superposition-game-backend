@@ -4,6 +4,7 @@ import io.github.winfeo.superpositiongame.backend.dto.fromApp.NewUserDTO;
 import io.github.winfeo.superpositiongame.backend.dto.fromApp.UpdateUserDTO;
 import io.github.winfeo.superpositiongame.backend.dto.toApp.UserDTO;
 import io.github.winfeo.superpositiongame.backend.entity.db.AuthData;
+import io.github.winfeo.superpositiongame.backend.entity.db.Authority;
 import io.github.winfeo.superpositiongame.backend.entity.db.League;
 import io.github.winfeo.superpositiongame.backend.entity.db.User;
 import io.github.winfeo.superpositiongame.backend.exception.*;
@@ -12,11 +13,13 @@ import io.github.winfeo.superpositiongame.backend.service.UserService;
 import io.github.winfeo.superpositiongame.backend.util.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +31,8 @@ public class UserServiceImpl implements UserService {
     private final GameRepository gameRepository;
     private final UserAchievementRepository achievementRepository;
     private final GamePlayerRepository playerRepository;
+    private final AuthorityRepository authorityRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional(readOnly = true)
@@ -78,7 +83,19 @@ public class UserServiceImpl implements UserService {
         League startLeague = leagueRepository.findByMinRating(0)
                 .orElseThrow(() -> new LeagueNotFoundException("Лига с мин. рейтингом " + 0 + " не найдена"));
 
-        User user = UserMapper.convertToDomain(dto, startLeague); //TODO добавить encoder
+        String authority = "ROLE_USER";
+        Optional<Authority> roleUser = authorityRepository.findByAuthority(authority);
+        if (roleUser.isEmpty()) {
+            throw new AuthorityNotFoundException("Authority " + authority + " не найдена");
+        }
+
+        User user = UserMapper.convertToDomain(
+                dto,
+                startLeague,
+                Set.of(roleUser.get()),
+                passwordEncoder
+        );
+
         try {
             return UserMapper.convertToDto(userRepository.save(user));
         } catch (DataIntegrityViolationException e) {
@@ -94,22 +111,26 @@ public class UserServiceImpl implements UserService {
 
         AuthData authData = user.getAuthData();
         String newEmail = dto.getEmail();
-        if (!authData.getEmail().equals(newEmail) && !newEmail.isEmpty()) {
+        if (!authData.getEmail().equals(newEmail)) {
             if (authDataRepository.existsByEmail(newEmail)) {
                 throw new AuthDataEmailAlreadyTakenException("Почта " + newEmail + " уже занята");
+            }
+
+            if (newEmail.isEmpty()) {
+                throw new EmailIsEmptyException("Поле почты не должно быть пустым");
             }
 
             authData.setEmail(newEmail);
         }
 
         String newNickname = dto.getNickname();
-        if (!user.getNickname().equals(newNickname) && !newNickname.isEmpty()) {
+        if (!user.getNickname().equals(newNickname)) {
             if (userRepository.existsByNickname(newNickname)) {
                 throw new NicknameAlreadyTakenException("Никнейм " + newNickname + " уже занят");
             }
 
-            if (newNickname.isBlank()) {
-                throw new NicknameIsEmptyException("Никнейм не должен быть пустым");
+            if (newNickname.isEmpty()) {
+                throw new NicknameIsEmptyException("Поле никнейма не должно быть пустым");
             }
 
             user.setNickname(newNickname);

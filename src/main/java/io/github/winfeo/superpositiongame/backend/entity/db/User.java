@@ -5,17 +5,19 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "users")
-@ToString(exclude = {"gamePlayers", "userAchievements"})
-public class User {
+@ToString(exclude = {"league", "authorities", "authData", "gamePlayers", "userAchievements"})
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -50,10 +52,24 @@ public class User {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<GamePlayer> gamePlayers = new ArrayList<>();
 
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_authority",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "authority_id")
+    )
+    private Set<Authority> authorities;
+
     public void setAuthData(AuthData authData) {
         this.authData = authData;
         authData.setUser(this);
     }
 
     public String getEmail() { return authData.getEmail(); }
+
+    @Override
+    public String getPassword() { return authData.getPasswordHash(); }
+
+    @Override
+    public String getUsername() { return authData.getEmail(); }
 }
