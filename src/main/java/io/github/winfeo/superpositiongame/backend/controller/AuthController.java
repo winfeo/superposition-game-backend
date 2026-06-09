@@ -2,6 +2,9 @@ package io.github.winfeo.superpositiongame.backend.controller;
 
 import io.github.winfeo.superpositiongame.backend.dto.fromApp.NewUserDTO;
 import io.github.winfeo.superpositiongame.backend.dto.toApp.UserDTO;
+import io.github.winfeo.superpositiongame.backend.jwt.AuthRequestDTO;
+import io.github.winfeo.superpositiongame.backend.jwt.AuthResponseDTO;
+import io.github.winfeo.superpositiongame.backend.service.AuthService;
 import io.github.winfeo.superpositiongame.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -12,7 +15,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
-    private final UserService userService; //TODO сделать AuthService?
+    private final UserService userService;
+    private final AuthService authService;
 
     @PostMapping("/register")
     public ResponseEntity<UserDTO> createUser(@RequestBody NewUserDTO dto) {
@@ -21,15 +25,10 @@ public class AuthController {
                 .body(userService.createUser(dto));
     }
 
-//    @GetMapping("/login")
-//    public ResponseEntity<UserDTO> loginUser(Authentication authentication) {
-//        return ResponseEntity.status(HttpStatus.OK).body(userService.getUserByEmail(authentication.getName()));
-//    }
-
-    @PostMapping("/login") //TODO переделать
-    public ResponseEntity<UserDTO> loginUser(@RequestBody NewUserDTO dto) {
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponseDTO> loginUser(@RequestBody AuthRequestDTO authRequest) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(userService.getUserByEmail(dto.getEmail()));
+                .body(authService.authenticateAndGenerateToken(authRequest));
     }
 }
