@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <property name="table.user" value="users"/>
+    <property name="table.auth_data" value="auth_data"/>
+    <property name="table.league" value="league"/>
+    <property name="idx.user_nickname" value="idx_user_nickname"/>
+    <property name="idx.user_rating" value="idx_user_rating"/>
+    <property name="idx.user_league" value="idx_user_league"/>
+
+    <!-- Таблица игроков -->
+    <changeSet id="2026-05-24--0004-user" author="winfeo">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="${table.user}"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="${table.user}">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="auth_id" type="BIGINT">
+                <constraints unique="true" nullable="false" foreignKeyName="fk_user_auth_data"
+                             referencedTableName="${table.auth_data}"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="league_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_user_league"
+                             referencedTableName="${table.league}"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="nickname" type="VARCHAR(25)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="rating_points" type="INT" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="wins_amount" type="INT" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="games_played" type="INT" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Индекс для быстрого поиска по никнейму -->
+    <changeSet id="2026-05-24--0004-user-nickname-idx" author="winfeo">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="${table.user}" indexName="${idx.user_nickname}"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="${table.user}" indexName="${idx.user_nickname}">
+            <column name="nickname"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Индекс для сортировки по рейтингу -->
+    <changeSet id="2026-05-24--0004-user-rating-idx" author="winfeo">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="${table.user}" indexName="${idx.user_rating}"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="${table.user}" indexName="${idx.user_rating}">
+            <column name="rating_points"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Индекс для поиска игроков по лиге -->
+    <changeSet id="2026-05-24--0008-user-league-idx" author="winfeo">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="${table.user}" indexName="${idx.user_league}"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="${table.user}" indexName="${idx.user_league}">
+            <column name="league_id"/>
+        </createIndex>
+    </changeSet>
+    
+</databaseChangeLog>

@@ -44,7 +44,7 @@ public class PauliEffect implements CardEffect {
             SlotState updatedSlot = slot;
 
             //Если на кубите нет соотвествующей оси (стрелки) не обновляем состояние дайса
-            if (ArrowCompatibilityUtil.isCardCompatibleWithArrow(description, slot.dice())) {
+            if (!slot.isFrozen() && ArrowCompatibilityUtil.isCardCompatibleWithArrow(description, slot.dice())) {
                 DiceState newState = calculateNewState(slot.dice().state(), description.axis());
                 Dice updatedDice = slot.dice().copyWithState(newState);
                 updatedSlot = slot.copyWithDice(updatedDice);

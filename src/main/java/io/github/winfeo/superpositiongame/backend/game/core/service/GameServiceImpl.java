@@ -4,28 +4,36 @@ import io.github.winfeo.superpositiongame.backend.game.core.GameEngine;
 import io.github.winfeo.superpositiongame.backend.game.core.GameLoop;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameSession;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameState;
-import io.github.winfeo.superpositiongame.backend.game.model.game.SlotOwner;
 import io.github.winfeo.superpositiongame.backend.game.model.move.Move;
+import io.github.winfeo.superpositiongame.backend.repository.GamePlayerRepository;
+import io.github.winfeo.superpositiongame.backend.repository.GameRepository;
+import io.github.winfeo.superpositiongame.backend.repository.UserRepository;
+import io.github.winfeo.superpositiongame.backend.repository.memory.ActiveGameRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class GameServiceImpl implements GameService {
-    private final Map<String, GameSession> games = new ConcurrentHashMap<>();
+    private final GameResultService gameResultService;
+    private final ActiveGameRepository repository;
+    private final Map<String, Set<String>> readyPlayers = new ConcurrentHashMap<>();
     private final GameEngine gameEngine;
     private final GameEventPublisher publisher;
     private final GameLoop gameLoop;
 
     public GameServiceImpl(
+            GameResultService gameResultService,
+            ActiveGameRepository repository,
             GameEngine gameEngine,
             GameEventPublisher publisher,
             GameLoop gameLoop
     ) {
+        this.gameResultService = gameResultService;
+        this.repository = repository;
         this.publisher = publisher;
         this.gameEngine = gameEngine;
         this.gameLoop = gameLoop;
@@ -43,42 +51,72 @@ public class GameServiceImpl implements GameService {
                 initialState
         );
 
-        games.put(gameId, newSession);
+        repository.save(newSession);
+
+        readyPlayers.put(gameId, ConcurrentHashMap.newKeySet());
 
         publisher.sendGameStart(playerA, gameId);
         publisher.sendGameStart(playerB, gameId);
+    }
 
-        //TODO переделать точно! Пока костыль, потом присылать от клиента сообщение о готовности
-        //Подписывать на нужный топик на клиенте и только потом получать уже GameState
-        CompletableFuture.delayedExecutor(500, TimeUnit.MILLISECONDS)
-                .execute(() -> {
-                    broadcastState(newSession);
-                });
+    @Override
+    public void playerReady(String gameId, String userId) {
+        GameSession session = repository.findById(gameId);
+        if (session == null) return;
+
+        Set<String> readySet = readyPlayers.get(gameId);
+        if (readySet == null) return;
+
+        if (readySet.add(userId)) {
+            if (readySet.size() == 2) {
+                broadcastState(session);
+                readyPlayers.remove(gameId);
+            }
+        }
     }
 
     @Override
     public void handleMove(String gameId, Move move, String userId) {
-        GameSession session = games.get(gameId);
+        GameSession session = repository.findById(gameId);
 
         if (session == null) return;
         if (!move.playerId().equals(userId)) return;
 
         GameState currentState = session.getGameState();
         GameState afterMoveState = gameEngine.applyMove(currentState, move);
-        GameState newPhaseState = gameLoop.afterMove(afterMoveState, userId);
+        afterMoveState = gameLoop.afterMove(afterMoveState, userId, gameId);
+        session.updateGameState(afterMoveState);
 
-        session.updateGameState(newPhaseState);
+        if (afterMoveState.winnerId() != null) {
+            broadcastState(session);
+            finishGame(session);
+            return;
+        }
 
+        repository.save(session);
         broadcastState(session);
     }
 
     @Override
     public void broadcastState(GameSession session) {
-        GameState state = session.getGameState();
+        GameState state = session.getGameState().copyWithServerTime(System.currentTimeMillis());
+        session.updateGameState(state);
+        repository.save(session);
+
         String playerA = session.getPlayerA();
         String playerB = session.getPlayerB();
+        String gameId = session.getGameId();
 
-        publisher.sendToUser(playerA, state);
-        publisher.sendToUser(playerB, state);
+        publisher.sendToUser(playerA, gameId, state);
+        publisher.sendToUser(playerB, gameId, state);
+    }
+
+    private void finishGame(GameSession session) {
+        if (session == null || repository.findById(session.getGameId()) == null) {
+            return;
+        }
+
+        gameResultService.saveGameResult(session);
+        repository.delete(session.getGameId());
     }
 }

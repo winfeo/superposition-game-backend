@@ -17,17 +17,18 @@ public class GameEventPublisher {
 
     public void sendToUser(
             String userId,
+            String gameId,
             GameState state
     ) {
         System.out.println("=== SEND TO USER GAME STATE ===");
         System.out.println("Target userId: " + userId);
         System.out.println("Event type: " + state.phase());
-        System.out.println("Full destination: /user/" + userId + "/queue/game");
+        System.out.println("Full destination: /user/" + userId + "/queue/game/" + gameId);
 
         try {
             messagingTemplate.convertAndSendToUser(
                     userId,
-                    "/queue/game",
+                    "/queue/game/" + gameId,
                     state
             );
             System.out.println("Message sent successfully");

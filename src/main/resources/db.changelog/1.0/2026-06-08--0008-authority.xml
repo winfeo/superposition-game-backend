@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <property name="table.authority" value="authority"/>
+
+    <!-- Таблица ролей в системе -->
+    <changeSet id="2026-06-08--0008-authority" author="winfeo">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="${table.authority}"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="${table.authority}">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="authority" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

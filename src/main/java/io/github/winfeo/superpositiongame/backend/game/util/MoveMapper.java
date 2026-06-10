@@ -1,14 +1,8 @@
 package io.github.winfeo.superpositiongame.backend.game.util;
 
-import io.github.winfeo.superpositiongame.backend.game.dto.move.MoveDto;
-import io.github.winfeo.superpositiongame.backend.game.dto.move.PlayCardDto;
-import io.github.winfeo.superpositiongame.backend.game.dto.move.RotateDiceDto;
-import io.github.winfeo.superpositiongame.backend.game.dto.move.SwapDicesDto;
+import io.github.winfeo.superpositiongame.backend.game.dto.move.*;
 import io.github.winfeo.superpositiongame.backend.game.model.dice.DiceState;
-import io.github.winfeo.superpositiongame.backend.game.model.move.Move;
-import io.github.winfeo.superpositiongame.backend.game.model.move.PlayCard;
-import io.github.winfeo.superpositiongame.backend.game.model.move.RotateDice;
-import io.github.winfeo.superpositiongame.backend.game.model.move.SwapDices;
+import io.github.winfeo.superpositiongame.backend.game.model.move.*;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -36,8 +30,32 @@ public class MoveMapper {
         if (dto instanceof SwapDicesDto d) {
             return new SwapDices(
                     d.playerId(),
+                    d.cardId(),
                     d.firstSlotIndex(),
-                    d.secondSlotIndex()
+                    d.secondSlotIndex(),
+                    d.firstSlotOwner(),
+                    d.secondSlotOwner()
+            );
+        }
+
+        if (dto instanceof DoubleTapEffectDto d) {
+            return new DoubleTapEffect(
+                    d.playerId(),
+                    d.cardId()
+            );
+        }
+
+        if(dto instanceof ReshuffleCardDto d) {
+            return new ReshuffleCard(
+                    d.playerId(),
+                    d.cardId(),
+                    d.cardsToChange()
+            );
+        }
+
+        if (dto instanceof SurrenderDto d) {
+            return new Surrender(
+                    d.playerId()
             );
         }
 

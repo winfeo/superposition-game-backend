@@ -1,6 +1,6 @@
 package io.github.winfeo.superpositiongame.backend.listener;
 
-import io.github.winfeo.superpositiongame.backend.dto.invitation.InvitationEventDto;
+import io.github.winfeo.superpositiongame.backend.dto.invitation.InvitationEventDTO;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +14,7 @@ public class InvitationEventPublisher {
         this.messagingTemplate = messagingTemplate;
     }
 
-    public void sendToUser(String userId, InvitationEventDto event) {
+    public void sendToUser(String userId, InvitationEventDTO event) {
         System.out.println("=== SEND TO USER ===");
         System.out.println("Target userId: " + userId);
         System.out.println("Event type: " + event.type());

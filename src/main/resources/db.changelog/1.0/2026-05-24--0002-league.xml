@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <property name="table.league" value="league"/>
+    <property name="idx.league_range" value="idx_league_range"/>
+
+    <!-- Словарь всех существующих лиг (игровой ранг) -->
+    <changeSet id="2026-05-24--0002-league" author="winfeo">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="${table.league}"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="${table.league}">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(50)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="min_rating" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="max_rating" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sort_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="icon_url" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Индекс для быстрого определения лиги игрока по диапазону его очков -->
+    <changeSet id="2026-05-24--0002-league-range-idx" author="winfeo">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="${table.league}" indexName="${idx.league_range}"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="${table.league}" indexName="${idx.league_range}">
+            <column name="min_rating"/>
+            <column name="max_rating"/>
+        </createIndex>
+    </changeSet>
+    
+</databaseChangeLog>

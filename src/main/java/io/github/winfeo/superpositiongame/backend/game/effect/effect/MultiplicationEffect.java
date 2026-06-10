@@ -19,6 +19,7 @@ public class MultiplicationEffect implements CardEffect {
 
         PlayerState updatedPlayer = new PlayerState(
                 player.id(),
+                player.nickname(),
                 player.hand(),
                 player.slots(),
                 player.skipNextTurn(),
@@ -28,7 +29,23 @@ public class MultiplicationEffect implements CardEffect {
         Map<String, PlayerState> updatedPlayers = new HashMap<>(state.players());
         updatedPlayers.put(playerId, updatedPlayer);
 
-        return state.copyWithPlayers(updatedPlayers);
+        System.out.println("=== HADAMARD EFFECT 3 ===");
+        System.out.println("Игрок: " + updatedPlayer.id());
+        System.out.println("Число ходов игрока: " + updatedPlayer.remainingMoves());
+        System.out.println("=========================");
+
+
+//        return state.copyWithPlayers(updatedPlayers);
+        return new GameState(
+                state.phase(),
+                state.currentPlayerId(),
+                updatedPlayers,
+                state.turnNumber(),
+                null,
+                state.winnerId(),
+                state.serverTime(),
+                state.turnEndsAt()
+        );
     }
 
     @Override

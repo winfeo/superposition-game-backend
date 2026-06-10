@@ -1,9 +1,9 @@
 package io.github.winfeo.superpositiongame.backend.listener;
 
-import io.github.winfeo.superpositiongame.backend.dto.invitation.InvitationDto;
-import io.github.winfeo.superpositiongame.backend.dto.invitation.InvitationEventDto;
+import io.github.winfeo.superpositiongame.backend.dto.invitation.InvitationDTO;
+import io.github.winfeo.superpositiongame.backend.dto.invitation.InvitationEventDTO;
 import io.github.winfeo.superpositiongame.backend.dto.invitation.InvitationEventType;
-import io.github.winfeo.superpositiongame.backend.entity.Invitation;
+import io.github.winfeo.superpositiongame.backend.entity.general.Invitation;
 import io.github.winfeo.superpositiongame.backend.service.InvitationService;
 import io.github.winfeo.superpositiongame.backend.service.LobbyService;
 import io.github.winfeo.superpositiongame.backend.util.InvitationMapper;
@@ -45,10 +45,10 @@ public class DisconnectListener {
         if (userId == null) return;
         Set<Invitation> removedInvites = invitationService.removeAllByFromUser(userId);
         for (Invitation inv: removedInvites) {
-            InvitationDto dto = InvitationMapper.convertToDto(inv);
+            InvitationDTO dto = InvitationMapper.convertToDto(inv);
             invitationPublisher.sendToUser(
                     inv.receiverId(),
-                    new InvitationEventDto(
+                    new InvitationEventDTO(
                             InvitationEventType.INVITE_REMOVED,
                             dto
                     )
@@ -64,7 +64,7 @@ public class DisconnectListener {
 //        }
 
         invitationService.removeAllToUser(userId);
-        lobbyService.removeUser(userId);
+        lobbyService.removePlayer(userId);
         lobbyPublisher.publish();
     }
 }

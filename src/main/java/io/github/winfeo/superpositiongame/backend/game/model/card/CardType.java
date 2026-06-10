@@ -18,6 +18,7 @@ public enum CardType {
     MEASUREMENT,
     KRONECKER_MULTIPLICATION,
     QUANTUM_NOISE,
-    SWAP
+    SWAP,
+    RESHUFFLE
 }
 

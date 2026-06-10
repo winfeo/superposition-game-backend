@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <property name="table.user_achievement" value="user_achievement"/>
+    <property name="table.user" value="user"/>
+    <property name="table.achievement" value="achievement"/>
+    <property name="idx.user_achievement_unique" value="idx_user_achievement_unique"/>
+    <property name="idx.user_achievement_user" value="idx_user_achievement_user"/>
+
+    <!-- Таблица достижений игроков -->
+    <changeSet id="2026-05-24--0005-user_achievement" author="winfeo">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="${table.user_achievement}"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="${table.user_achievement}">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_user_achievement_user"
+                             referencedTableName="${table.user}"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="achievement_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_user_achievement_achievement"
+                             referencedTableName="${table.achievement}"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="unlocked_at" type="TIMESTAMP" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Один игрок не может получить одно достижение дважды (уникальный индекс) -->
+    <changeSet id="2026-05-24--0005-user_achievement-unique-idx" author="winfeo">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="${table.user_achievement}" indexName="${idx.user_achievement_unique}"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="${table.user_achievement}" indexName="${idx.user_achievement_unique}" unique="true">
+            <column name="user_id"/>
+            <column name="achievement_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Индекс для быстрого получения всех достижений игрока -->
+    <changeSet id="2026-05-24--0005-user_achievement-user-idx" author="winfeo">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="${table.user_achievement}" indexName="${idx.user_achievement_user}"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="${table.user_achievement}" indexName="${idx.user_achievement_user}">
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
+    
+</databaseChangeLog>

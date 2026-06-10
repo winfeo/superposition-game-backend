@@ -1,6 +1,6 @@
 package io.github.winfeo.superpositiongame.backend.service.impl;
 
-import io.github.winfeo.superpositiongame.backend.entity.Invitation;
+import io.github.winfeo.superpositiongame.backend.entity.general.Invitation;
 import io.github.winfeo.superpositiongame.backend.service.InvitationService;
 import org.springframework.stereotype.Service;
 

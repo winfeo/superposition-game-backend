@@ -7,4 +7,5 @@ public interface GameService {
     void createGame(String playerA, String playerB);
     void handleMove(String gameId, Move move, String userId);
     void broadcastState(GameSession session);
+    void playerReady(String gameId, String userId);
 }

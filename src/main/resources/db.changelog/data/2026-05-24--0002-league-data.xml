@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <property name="table.league" value="league"/>
+    <property name="file.league" value="db.changelog/data/csv/2026-05-24--0002-league-data.csv"/>
+
+    <!-- league: загрузка данных -->
+    <changeSet id="2026-05-24--0002-league-data" author="winfeo">
+        <loadData tableName="${table.league}" file="${file.league}"
+                  separator=";"
+                  quotchar='"'
+                  encoding="UTF-8"/>
+    </changeSet>
+
+</databaseChangeLog>

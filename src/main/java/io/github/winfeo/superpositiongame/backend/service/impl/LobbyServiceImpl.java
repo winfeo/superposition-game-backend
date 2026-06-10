@@ -1,6 +1,6 @@
 package io.github.winfeo.superpositiongame.backend.service.impl;
 
-import io.github.winfeo.superpositiongame.backend.entity.User;
+import io.github.winfeo.superpositiongame.backend.entity.general.Player;
 import io.github.winfeo.superpositiongame.backend.service.LobbyService;
 import org.springframework.stereotype.Service;
 
@@ -9,23 +9,26 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class LobbyServiceImpl implements LobbyService {
-    private final Set<User> users = ConcurrentHashMap.newKeySet();
+    private final Set<Player> players = ConcurrentHashMap.newKeySet();
     @Override
-    public void addUser(String userId) {
-        System.out.println("addUser: " + userId);
-        users.add(new User(userId));
-        System.out.println("USERS NOW: " + users.size());
+    public void addPlayer(
+            String playerId,
+            String playerNickname
+    ) {
+        System.out.println("addUser: " + playerId + ", nickname: " + playerNickname);
+        players.add(new Player(playerId, playerNickname));
+        System.out.println("USERS NOW: " + players.size());
     }
 
     @Override
-    public void removeUser(String userId) {
+    public void removePlayer(String userId) {
         System.out.println("removeUser: " + userId);
-        users.removeIf(user -> user.getId().equals(userId));
-        System.out.println("USERS AFTER REMOVE: " + users.size());
+        players.removeIf(user -> user.getId().equals(userId));
+        System.out.println("USERS AFTER REMOVE: " + players.size());
     }
 
     @Override
-    public Set<User> getUsers() {
-        return users;
+    public Set<Player> getPlayers() {
+        return players;
     }
 }
