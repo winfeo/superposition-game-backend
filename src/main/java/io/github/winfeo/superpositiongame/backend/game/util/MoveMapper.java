@@ -1,7 +1,7 @@
 package io.github.winfeo.superpositiongame.backend.game.util;
 
 import io.github.winfeo.superpositiongame.backend.game.dto.move.*;
-import io.github.winfeo.superpositiongame.backend.game.model.dice.DiceState;
+import io.github.winfeo.superpositiongame.backend.game.model.dice.DiceType;
 import io.github.winfeo.superpositiongame.backend.game.model.move.*;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +22,7 @@ public class MoveMapper {
                     d.playerId(),
                     d.cardId(),
                     d.targetSlotIndex(),
-                    DiceState.valueOf(d.newState()),
+                    DiceType.valueOf(d.newState()),
                     d.targetPlayerId()
             );
         }

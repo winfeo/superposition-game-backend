@@ -3,11 +3,10 @@ package io.github.winfeo.superpositiongame.backend.game.effect.effect;
 import io.github.winfeo.superpositiongame.backend.game.effect.CardEffect;
 import io.github.winfeo.superpositiongame.backend.game.model.card.*;
 import io.github.winfeo.superpositiongame.backend.game.model.dice.Dice;
-import io.github.winfeo.superpositiongame.backend.game.model.dice.DiceState;
+import io.github.winfeo.superpositiongame.backend.game.model.dice.DiceType;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameState;
 import io.github.winfeo.superpositiongame.backend.game.model.game.PlayerState;
 import io.github.winfeo.superpositiongame.backend.game.model.game.SlotState;
-import io.github.winfeo.superpositiongame.backend.game.util.ArrowCompatibilityUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -38,13 +37,13 @@ public class HadamardEffect implements CardEffect {
             SlotState updatedSlot = slot;
 
             if (!slot.isFrozen() /*&& ArrowCompatibilityUtil.isCardCompatibleWithArrow(description, slot.dice())*/) {
-                DiceState newState = switch (slot.dice().state()) {
-                    case ZERO -> DiceState.PLUS;
-                    case ONE -> DiceState.MINUS;
-                    case PLUS -> DiceState.ZERO;
-                    case MINUS -> DiceState.ONE;
-                    case I -> DiceState.I_MINUS;
-                    case I_MINUS -> DiceState.I;
+                DiceType newState = switch (slot.dice().state()) {
+                    case ZERO -> DiceType.PLUS;
+                    case ONE -> DiceType.MINUS;
+                    case PLUS -> DiceType.ZERO;
+                    case MINUS -> DiceType.ONE;
+                    case I -> DiceType.I_MINUS;
+                    case I_MINUS -> DiceType.I;
                 };
 
                 Dice updatedDice = slot.dice().copyWithState(newState);

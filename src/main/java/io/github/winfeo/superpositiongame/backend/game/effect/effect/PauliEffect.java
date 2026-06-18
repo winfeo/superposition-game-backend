@@ -3,7 +3,7 @@ package io.github.winfeo.superpositiongame.backend.game.effect.effect;
 import io.github.winfeo.superpositiongame.backend.game.effect.CardEffect;
 import io.github.winfeo.superpositiongame.backend.game.model.card.*;
 import io.github.winfeo.superpositiongame.backend.game.model.dice.Dice;
-import io.github.winfeo.superpositiongame.backend.game.model.dice.DiceState;
+import io.github.winfeo.superpositiongame.backend.game.model.dice.DiceType;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameState;
 import io.github.winfeo.superpositiongame.backend.game.model.game.PlayerState;
 import io.github.winfeo.superpositiongame.backend.game.model.game.SlotState;
@@ -45,7 +45,7 @@ public class PauliEffect implements CardEffect {
 
             //Если на кубите нет соотвествующей оси (стрелки) не обновляем состояние дайса
             if (!slot.isFrozen() && ArrowCompatibilityUtil.isCardCompatibleWithArrow(description, slot.dice())) {
-                DiceState newState = calculateNewState(slot.dice().state(), description.axis());
+                DiceType newState = calculateNewState(slot.dice().state(), description.axis());
                 Dice updatedDice = slot.dice().copyWithState(newState);
                 updatedSlot = slot.copyWithDice(updatedDice);
             }
@@ -75,27 +75,27 @@ public class PauliEffect implements CardEffect {
                 || type == CardType.PAULI_Z_3;
     }
 
-    private DiceState calculateNewState(DiceState state, AxisRotation axis) {
+    private DiceType calculateNewState(DiceType state, AxisRotation axis) {
         return switch (axis) {
             case X -> switch (state) {
-                case ZERO -> DiceState.ONE;
-                case ONE -> DiceState.ZERO;
-                case I -> DiceState.I_MINUS;
-                case I_MINUS -> DiceState.I;
+                case ZERO -> DiceType.ONE;
+                case ONE -> DiceType.ZERO;
+                case I -> DiceType.I_MINUS;
+                case I_MINUS -> DiceType.I;
                 default -> state;
             };
             case Y -> switch (state) {
-                case PLUS -> DiceState.MINUS;
-                case MINUS -> DiceState.PLUS;
-                case ZERO -> DiceState.ONE;
-                case ONE -> DiceState.ZERO;
+                case PLUS -> DiceType.MINUS;
+                case MINUS -> DiceType.PLUS;
+                case ZERO -> DiceType.ONE;
+                case ONE -> DiceType.ZERO;
                 default -> state;
             };
             case Z -> switch (state) {
-                case PLUS -> DiceState.MINUS;
-                case MINUS -> DiceState.PLUS;
-                case I -> DiceState.I_MINUS;
-                case I_MINUS -> DiceState.I;
+                case PLUS -> DiceType.MINUS;
+                case MINUS -> DiceType.PLUS;
+                case I -> DiceType.I_MINUS;
+                case I_MINUS -> DiceType.I;
                 default -> state;
             };
         };
