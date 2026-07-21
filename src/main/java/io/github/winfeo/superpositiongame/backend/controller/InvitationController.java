@@ -13,7 +13,9 @@ import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
 import java.time.Instant;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Controller
 public class InvitationController {
@@ -99,24 +101,19 @@ public class InvitationController {
 
         String userId = principal.getName();
         System.out.println("Got userId from Principal: " + userId);
-        Set<Invitation> userInvitations = invitationService.getInvitations(userId);
-        System.out.println("Found " + userInvitations.size() + " invitations for user");
 
-        userInvitations.forEach(inv -> {
-            InvitationEventDTO event = new InvitationEventDTO(
-                    InvitationEventType.INIT,
-                    InvitationMapper.convertToDto(inv)
-            );
-            publisher.sendToUser(userId, event);
-        });
+        List<InvitationDTO> invitations = invitationService
+                .getInvitations(userId)
+                .stream()
+                .map(InvitationMapper::convertToDto)
+                .toList();
 
-        if (userInvitations.isEmpty()) {
-            InvitationEventDTO emptyEvent = new InvitationEventDTO(
-                    InvitationEventType.INIT,
-                    null
-            );
-            publisher.sendToUser(userId, emptyEvent);
-        }
+        System.out.println("Found " + invitations.size() + " invitations for user");
+
+        publisher.sendToUser(
+                userId,
+                InvitationEventDTO.initial(invitations)
+        );
 
         System.out.println("=== INIT INVITATIONS END ===");
     }
