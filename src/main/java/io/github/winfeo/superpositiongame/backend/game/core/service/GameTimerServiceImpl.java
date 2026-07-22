@@ -3,6 +3,7 @@ package io.github.winfeo.superpositiongame.backend.game.core.service;
 import io.github.winfeo.superpositiongame.backend.game.core.GameLoop;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GamePhase;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameSession;
+import io.github.winfeo.superpositiongame.backend.game.model.game.GameSessionStatus;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameState;
 import io.github.winfeo.superpositiongame.backend.repository.memory.ActiveGameRepository;
 import org.springframework.messaging.simp.user.SimpUser;
@@ -38,20 +39,33 @@ public class GameTimerServiceImpl implements GameTimerService {
     public void processTimers() {
         long now = System.currentTimeMillis();
         for (GameSession session : repository.getAllGames()) {
-            GameState state = session.getGameState();
-            if (state.turnEndsAt() == null) continue;
-            if (state.phase() == GamePhase.GAME_FINISHED) continue;
-            if (state.phase() == GamePhase.GAME_SETUP) continue;
+            boolean turnFinished = false;
+            long timeLeft;
 
-            if (now >= state.turnEndsAt()) {
-                GameState updated = gameLoop.forceEndTurn(state);
-                session.updateGameState(updated);
-                repository.save(session);
+            synchronized (session) {
+                if (session.getStatus() != GameSessionStatus.ACTIVE) continue;
+
+                GameState state = session.getGameState();
+                if (state.turnEndsAt() == null) continue;
+                if (state.phase() == GamePhase.GAME_FINISHED) continue;
+                if (state.phase() == GamePhase.GAME_SETUP) continue;
+
+                if (now >= state.turnEndsAt()) {
+                    GameState updated = gameLoop.forceEndTurn(state);
+                    session.updateGameState(updated);
+                    repository.save(session);
+                    turnFinished = true;
+                    timeLeft = 0L;
+                } else {
+                    timeLeft = Math.max(0, state.turnEndsAt() - now);
+                }
+            }
+
+            if (turnFinished) {
                 gameService.broadcastState(session);
                 continue;
             }
 
-            long timeLeft = Math.max(0, state.turnEndsAt() - now);
             sendTime(
                     session.getPlayerA(),
                     session.getGameId(),

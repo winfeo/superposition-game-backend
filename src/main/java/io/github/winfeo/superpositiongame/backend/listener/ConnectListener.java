@@ -16,15 +16,18 @@ public class ConnectListener {
     private final LobbyService lobbyService;
     private final LobbyEventPublisher eventPublisher;
     private final UserRepository userRepository;
+    private final UserSocketSessionRegistry sessionRegistry;
 
     public ConnectListener(
             LobbyService lobbyService,
             LobbyEventPublisher eventPublisher,
-            UserRepository userRepository
+            UserRepository userRepository,
+            UserSocketSessionRegistry sessionRegistry
     ) {
         this.lobbyService = lobbyService;
         this.eventPublisher = eventPublisher;
         this.userRepository = userRepository;
+        this.sessionRegistry = sessionRegistry;
     }
 
     @EventListener
@@ -56,6 +59,11 @@ public class ConnectListener {
 
         if (sessionId == null || playerId == null) {
             System.out.println("userId is NULL or sessionId is NULL");
+            return;
+        }
+
+        boolean firstSession = sessionRegistry.register(sessionId, playerId);
+        if (!firstSession) {
             return;
         }
 

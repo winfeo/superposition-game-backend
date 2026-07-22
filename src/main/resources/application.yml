@@ -17,6 +17,12 @@ springdoc:
     path: /swagger-ui.html
     operationsSorter: method
 
+game:
+  presence:
+    heartbeat-timeout-ms: 5000
+    reconnect-timeout-ms: 60000
+    monitor-interval-ms: 1000
+
 ---
 spring:
   config:
