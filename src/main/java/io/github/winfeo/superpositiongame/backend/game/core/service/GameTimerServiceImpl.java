@@ -1,10 +1,7 @@
 package io.github.winfeo.superpositiongame.backend.game.core.service;
 
 import io.github.winfeo.superpositiongame.backend.game.core.GameLoop;
-import io.github.winfeo.superpositiongame.backend.game.model.game.GamePhase;
-import io.github.winfeo.superpositiongame.backend.game.model.game.GameSession;
-import io.github.winfeo.superpositiongame.backend.game.model.game.GameSessionStatus;
-import io.github.winfeo.superpositiongame.backend.game.model.game.GameState;
+import io.github.winfeo.superpositiongame.backend.game.model.game.*;
 import io.github.winfeo.superpositiongame.backend.repository.memory.ActiveGameRepository;
 import org.springframework.messaging.simp.user.SimpUser;
 import org.springframework.messaging.simp.user.SimpUserRegistry;
@@ -15,6 +12,9 @@ import org.springframework.stereotype.Component;
 @Component
 @EnableScheduling
 public class GameTimerServiceImpl implements GameTimerService {
+    private static final long TIMER_PROCESS_INTERVAL_MS = 100L;
+    private static final long TIMER_SYNC_INTERVAL_MS = 500L;
+
     private final ActiveGameRepository repository;
     private final GameLoop gameLoop;
     private final GameService gameService;
@@ -35,12 +35,12 @@ public class GameTimerServiceImpl implements GameTimerService {
         this.userRegistry = userRegistry;
     }
 
-    @Scheduled(fixedRate = 500)
+    @Scheduled(fixedRate = TIMER_PROCESS_INTERVAL_MS)
     public void processTimers() {
-        long now = System.currentTimeMillis();
-        for (GameSession session : repository.getAllGames()) {
+        for (GameSession session: repository.getAllGames()) {
+            long now = System.currentTimeMillis();
             boolean turnFinished = false;
-            long timeLeft;
+            TimerSnapshot timerSnapshot = null;
 
             synchronized (session) {
                 if (session.getStatus() != GameSessionStatus.ACTIVE) continue;
@@ -51,50 +51,55 @@ public class GameTimerServiceImpl implements GameTimerService {
                 if (state.phase() == GamePhase.GAME_SETUP) continue;
 
                 if (now >= state.turnEndsAt()) {
-                    GameState updated = gameLoop.forceEndTurn(state);
-                    session.updateGameState(updated);
+                    state = gameLoop.forceEndTurn(state);
+                    session.updateGameState(state);
                     repository.save(session);
                     turnFinished = true;
-                    timeLeft = 0L;
-                } else {
-                    timeLeft = Math.max(0, state.turnEndsAt() - now);
+                }
+
+                if (session.shouldPublishTimer(now, TIMER_SYNC_INTERVAL_MS)) {
+                    long timeLeft = Math.max(0L, state.turnEndsAt() - now);
+                    long revision = session.markTimerPublished(now);
+
+                    timerSnapshot = new TimerSnapshot(
+                            state.turnNumber(),
+                            timeLeft,
+                            revision
+                    );
                 }
             }
 
-            if (turnFinished) {
-                gameService.broadcastState(session);
-                continue;
+            if (turnFinished) gameService.broadcastState(session);
+
+            if (timerSnapshot != null) {
+                sendTime(
+                        session.getPlayerA(),
+                        session.getGameId(),
+                        timerSnapshot
+                );
+
+                sendTime(
+                        session.getPlayerB(),
+                        session.getGameId(),
+                        timerSnapshot
+                );
             }
-
-            sendTime(
-                    session.getPlayerA(),
-                    session.getGameId(),
-                    timeLeft,
-                    now
-            );
-
-            sendTime(
-                    session.getPlayerB(),
-                    session.getGameId(),
-                    timeLeft,
-                    now
-            );
         }
     }
 
     private void sendTime(
             String userId,
             String gameId,
-            long timeLeft,
-            long timestamp
+            TimerSnapshot snapshot
     ) {
         SimpUser user = userRegistry.getUser(userId);
         if (user != null && user.hasSessions()) {
             publisher.sendTimerUpdate(
                     userId,
                     gameId,
-                    timeLeft,
-                    timestamp
+                    snapshot.turnNumber(),
+                    snapshot.timeLeftMs(),
+                    snapshot.revision()
             );
         }
     }

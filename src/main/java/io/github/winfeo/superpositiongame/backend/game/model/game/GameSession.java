@@ -16,6 +16,9 @@ public class GameSession {
     private final Map<String, Long> lastHeartbeatAt = new HashMap<>();
     private final Map<String, Long> reconnectDeadlines = new HashMap<>();
     private final Set<String> disconnectedPlayers = new HashSet<>();
+    private long timerRevision;
+    private long lastTimerSyncAt;
+    private int lastTimerSyncTurnNumber = -1;
 
     public GameSession(
             String gameId,
@@ -119,6 +122,24 @@ public class GameSession {
 
     public synchronized Map<String, Long> getReconnectDeadlines() {
         return Map.copyOf(reconnectDeadlines);
+    }
+
+    public synchronized boolean shouldPublishTimer(
+            long now,
+            long syncIntervalMs
+    ) {
+        return gameState.turnNumber() != lastTimerSyncTurnNumber || now - lastTimerSyncAt >= syncIntervalMs;
+    }
+
+    public synchronized long markTimerPublished(long now) {
+        lastTimerSyncAt = now;
+        lastTimerSyncTurnNumber = gameState.turnNumber();
+        return ++timerRevision;
+    }
+
+    public synchronized void invalidateTimerSync() {
+        lastTimerSyncAt = 0L;
+        lastTimerSyncTurnNumber = -1;
     }
 }
 

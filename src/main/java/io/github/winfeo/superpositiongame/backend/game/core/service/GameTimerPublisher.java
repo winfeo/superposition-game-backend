@@ -17,10 +17,15 @@ public class GameTimerPublisher {
     public void sendTimerUpdate(
             String userId,
             String gameId,
+            int turnNumber,
             long timeLeftMs,
-            long serverTimestamp
+            long revision
     ) {
-        TimerUpdatePacket packet = new TimerUpdatePacket(timeLeftMs, serverTimestamp);
+        TimerUpdatePacket packet = new TimerUpdatePacket(
+                turnNumber,
+                timeLeftMs,
+                revision
+        );
 
         messagingTemplate.convertAndSendToUser(
                 userId,

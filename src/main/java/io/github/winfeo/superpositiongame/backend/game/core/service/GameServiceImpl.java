@@ -132,6 +132,9 @@ public class GameServiceImpl implements GameService {
             if (!move.playerId().equals(userId)) return;
 
             GameState currentState = session.getGameState();
+            Long turnEndsAt = currentState.turnEndsAt();
+            if (turnEndsAt != null && System.currentTimeMillis() >= turnEndsAt) return;
+
             GameState afterMoveState = gameEngine.applyMove(currentState, move);
             afterMoveState = gameLoop.afterMove(afterMoveState, userId, gameId);
             session.updateGameState(afterMoveState);
@@ -404,6 +407,7 @@ public class GameServiceImpl implements GameService {
         session.setStatus(GameSessionStatus.ACTIVE);
         session.recordHeartbeat(session.getPlayerA(), now);
         session.recordHeartbeat(session.getPlayerB(), now);
+        session.invalidateTimerSync();
     }
 
     private void evaluateReconnectDeadlines(
