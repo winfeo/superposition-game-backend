@@ -1,7 +1,6 @@
 package io.github.winfeo.superpositiongame.backend.game.core;
 
 import io.github.winfeo.superpositiongame.backend.entity.db.User;
-import io.github.winfeo.superpositiongame.backend.game.core.service.GameEventPublisher;
 import io.github.winfeo.superpositiongame.backend.game.model.card.Card;
 import io.github.winfeo.superpositiongame.backend.game.model.dice.Dice;
 import io.github.winfeo.superpositiongame.backend.game.model.dice.DiceType;
@@ -15,24 +14,20 @@ import io.github.winfeo.superpositiongame.backend.util.DiceGenerator;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 
 @Component
 public class GameLoop {
     private final UserRepository userRepository;
-    private final GameEventPublisher publisher;
     private final CardGenerator cardGenerator;
     private final DiceGenerator diceGenerator;
     private static final long TIMER_TURN_DURATION_MS = 45_000;
 
     public GameLoop (
             UserRepository userRepository,
-            GameEventPublisher publisher,
             CardGenerator cardGenerator,
             DiceGenerator diceGenerator
-    ) { //TODO убрать. Пока так, чтобы на клиенте обновлялось состояние карт у второго игрока
+    ) {
         this.userRepository = userRepository;
-        this.publisher = publisher;
         this.cardGenerator = cardGenerator;
         this.diceGenerator = diceGenerator;
     }
@@ -146,13 +141,17 @@ public class GameLoop {
         long now = System.currentTimeMillis();
         long turnEndsAt = now + TIMER_TURN_DURATION_MS;
 
-        return state
+        GameState nextTurnState = state
                 .copyWithPlayers(updated)
                 .copyWithTurnNumber(newTurnNumber)
                 .copyWithCurrentPlayerId(next)
                 .copyWithPhase(GamePhase.MOVE_START)
                 .copyWithServerTime(now)
                 .copyWithTurnEndsAt(turnEndsAt);
+
+        return isRoundCompleted(newTurnNumber, state.players().size())
+                ? dealCards(nextTurnState)
+                : nextTurnState;
     }
 
     public GameState afterMove(
@@ -195,19 +194,11 @@ public class GameLoop {
                 updatedState.turnEndsAt()
         );
 
-        GameState afterTurn = endTurn(clearedState);
+        return endTurn(clearedState);
+    }
 
-        if (afterTurn.turnNumber() % 2 == 0) {
-            publisher.sendToUser( //TODO убрать
-                    playerId,
-                    gameId,
-                    afterTurn
-            );
-
-            afterTurn = dealCards(afterTurn);
-        }
-
-        return afterTurn;
+    private boolean isRoundCompleted(int newTurnNumber, int playersCount) {
+        return playersCount > 0 && newTurnNumber > 1 && (newTurnNumber - 1) % playersCount == 0;
     }
 
     private String findWinnerId(GameState state) {
