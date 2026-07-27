@@ -1,7 +1,7 @@
 package io.github.winfeo.superpositiongame.backend.game.core;
 
 import io.github.winfeo.superpositiongame.backend.game.core.service.GameService;
-import io.github.winfeo.superpositiongame.backend.game.dto.move.MoveDto;
+import io.github.winfeo.superpositiongame.backend.game.dto.MoveCommandDTO;
 import io.github.winfeo.superpositiongame.backend.game.model.move.Move;
 import io.github.winfeo.superpositiongame.backend.game.util.MoveMapper;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -22,11 +22,18 @@ public class GameController {
     @MessageMapping("/game/{gameId}/move")
     public void handleMove(
             @DestinationVariable String gameId,
-            MoveDto moveDto,
+            MoveCommandDTO commandDto,
             Principal principal
     ) {
+        if (commandDto == null || commandDto.move() == null) return;
+
         String userId = principal.getName();
-        Move move = MoveMapper.toDomain(moveDto);
-        service.handleMove(gameId, move, userId);
+        Move move = MoveMapper.toDomain(commandDto.move());
+        service.handleMove(
+                gameId,
+                move,
+                userId,
+                commandDto.expectedTurnNumber()
+        );
     }
 }

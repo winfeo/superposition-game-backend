@@ -5,7 +5,7 @@ import io.github.winfeo.superpositiongame.backend.game.model.move.Move;
 
 public interface GameService {
     void createGame(String playerA, String playerB);
-    void handleMove(String gameId, Move move, String userId);
+    void handleMove(String gameId, Move move, String userId, int expectedTurnNumber);
     void broadcastState(GameSession session);
     void playerReady(String gameId, String userId);
     void heartbeat(String gameId, String userId);

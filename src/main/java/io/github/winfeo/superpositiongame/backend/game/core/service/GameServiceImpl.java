@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.Optional;
 
 @Service
 public class GameServiceImpl implements GameService {
@@ -119,7 +120,7 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public void handleMove(String gameId, Move move, String userId) {
+    public void handleMove(String gameId, Move move, String userId, int expectedTurnNumber) {
         GameSession session = repository.findById(gameId);
         if (session == null) return;
 
@@ -129,13 +130,23 @@ public class GameServiceImpl implements GameService {
         synchronized (session) {
             if (session.getStatus() != GameSessionStatus.ACTIVE) return;
             if (!session.containsPlayer(userId)) return;
-            if (!move.playerId().equals(userId)) return;
+            if (!userId.equals(move.playerId())) return;
 
             GameState currentState = session.getGameState();
-            Long turnEndsAt = currentState.turnEndsAt();
-            if (turnEndsAt != null && System.currentTimeMillis() >= turnEndsAt) return;
+            boolean surrender = move instanceof Surrender;
 
-            GameState afterMoveState = gameEngine.applyMove(currentState, move);
+            if (!surrender) {
+                if (!userId.equals(currentState.currentPlayerId())) return;
+                if (expectedTurnNumber != currentState.turnNumber()) return;
+
+                Long turnEndsAt = currentState.turnEndsAt();
+                if (turnEndsAt == null || System.currentTimeMillis() >= turnEndsAt) return;
+            }
+
+            Optional<GameState> appliedState = gameEngine.applyMove(currentState, move);
+            if (appliedState.isEmpty()) return;
+
+            GameState afterMoveState = appliedState.get();
             afterMoveState = gameLoop.afterMove(afterMoveState, userId, gameId);
             session.updateGameState(afterMoveState);
             repository.save(session);

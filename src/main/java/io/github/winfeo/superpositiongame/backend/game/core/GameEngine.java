@@ -2,7 +2,6 @@ package io.github.winfeo.superpositiongame.backend.game.core;
 
 import io.github.winfeo.superpositiongame.backend.game.effect.CardEffect;
 import io.github.winfeo.superpositiongame.backend.game.effect.CardEffectsRepository;
-import io.github.winfeo.superpositiongame.backend.game.effect.effect.ReshuffleEffect;
 import io.github.winfeo.superpositiongame.backend.game.model.card.Card;
 import io.github.winfeo.superpositiongame.backend.game.model.card.CardDescription;
 import io.github.winfeo.superpositiongame.backend.game.model.card.CardDescriptionRepository;
@@ -16,7 +15,6 @@ import io.github.winfeo.superpositiongame.backend.util.CardGenerator;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 public class GameEngine {
@@ -38,16 +36,18 @@ public class GameEngine {
         handlers.put(Surrender.class, (MoveHandler<Surrender>) this::handleSurrenderMove);
     }
 
-    public GameState applyMove(GameState state, Move move) {
+    public Optional<GameState> applyMove(GameState state, Move move) {
         if (!(move instanceof Surrender) && !state.currentPlayerId().equals(move.playerId())) {
-            return state;
+            return Optional.empty();
         }
 
         MoveHandler<?> handler = handlers.get(move.getClass());
-        if (handler == null) return state;
+        if (handler == null) return Optional.empty();
 
         GameState newState = handle(handler, state, move);
-        return newState;
+        return newState == null || newState.equals(state)
+                ? Optional.empty()
+                : Optional.of(newState);
     }
 
     @SuppressWarnings("unchecked")
