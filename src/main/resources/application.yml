@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: local
+    active: remote
 
   liquibase:
     enabled: true
@@ -16,6 +16,12 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     operationsSorter: method
+
+game:
+  presence:
+    heartbeat-timeout-ms: 5000
+    reconnect-timeout-ms: 60000
+    monitor-interval-ms: 1000
 
 ---
 spring:
@@ -53,3 +59,24 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
+---
+spring:
+  config:
+    activate:
+      on-profile: remote
+
+  datasource:
+    url: ${REMOTE_DB_URL}
+    username: ${REMOTE_DB_USER}
+    password: ${REMOTE_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      connection-timeout: 30000
+      leak-detection-threshold: 5000
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+    hibernate:
+      ddl-auto: validate

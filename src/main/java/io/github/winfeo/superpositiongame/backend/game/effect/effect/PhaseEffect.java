@@ -3,7 +3,7 @@ package io.github.winfeo.superpositiongame.backend.game.effect.effect;
 import io.github.winfeo.superpositiongame.backend.game.effect.CardEffect;
 import io.github.winfeo.superpositiongame.backend.game.model.card.*;
 import io.github.winfeo.superpositiongame.backend.game.model.dice.Dice;
-import io.github.winfeo.superpositiongame.backend.game.model.dice.DiceState;
+import io.github.winfeo.superpositiongame.backend.game.model.dice.DiceType;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameState;
 import io.github.winfeo.superpositiongame.backend.game.model.game.PlayerState;
 import io.github.winfeo.superpositiongame.backend.game.model.game.SlotState;
@@ -30,11 +30,11 @@ public class PhaseEffect implements CardEffect {
 
         Dice updatedDice = slot.dice();
         if (ArrowCompatibilityUtil.isCardCompatibleWithArrow(description, slot.dice())) {
-            DiceState newState = switch (slot.dice().state()) {
-                case PLUS -> forward ? DiceState.I : DiceState.I_MINUS;
-                case MINUS -> forward ? DiceState.I_MINUS : DiceState.I;
-                case I -> forward ? DiceState.MINUS : DiceState.PLUS;
-                case I_MINUS -> forward ? DiceState.PLUS : DiceState.MINUS;
+            DiceType newState = switch (slot.dice().state()) {
+                case PLUS -> forward ? DiceType.I : DiceType.I_MINUS;
+                case MINUS -> forward ? DiceType.I_MINUS : DiceType.I;
+                case I -> forward ? DiceType.MINUS : DiceType.PLUS;
+                case I_MINUS -> forward ? DiceType.PLUS : DiceType.MINUS;
                 default -> slot.dice().state();
             };
 

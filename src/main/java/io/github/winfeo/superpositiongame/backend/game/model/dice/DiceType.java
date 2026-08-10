@@ -1,6 +1,6 @@
 package io.github.winfeo.superpositiongame.backend.game.model.dice;
 
-public enum DiceState {
+public enum DiceType {
     ZERO,
     ONE,
     PLUS,

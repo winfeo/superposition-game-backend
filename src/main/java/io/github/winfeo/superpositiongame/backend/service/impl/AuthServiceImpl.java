@@ -8,8 +8,10 @@ import io.github.winfeo.superpositiongame.backend.service.AuthService;
 import io.github.winfeo.superpositiongame.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -22,17 +24,36 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponseDTO authenticateAndGenerateToken(AuthRequestDTO authRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        authRequest.getEmail(),
-                        authRequest.getPassword()
-                )
-        );
+//        Authentication authentication = authenticationManager.authenticate(
+//                new UsernamePasswordAuthenticationToken(
+//                        authRequest.getEmail(),
+//                        authRequest.getPassword()
+//                )
+//        );
+//
+//        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+//        String token = jwtUtil.generateToken(userDetails.getUsername());
+//        UserDTO dto = userService.getUserByEmail(userDetails.getUsername());
+//
+//        return new AuthResponseDTO(token, dto);
 
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        String token = jwtUtil.generateToken(userDetails.getUsername());
-        UserDTO dto = userService.getUserByEmail(userDetails.getUsername());
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            authRequest.getEmail(),
+                            authRequest.getPassword()
+                    )
+            );
 
-        return new AuthResponseDTO(token, dto);
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String token = jwtUtil.generateToken(userDetails.getUsername());
+            UserDTO dto = userService.getUserByEmail(userDetails.getUsername());
+
+            return new AuthResponseDTO(token, dto);
+        } catch (BadCredentialsException e) {
+            throw new BadCredentialsException("Неверный email или пароль");
+        } catch (AuthenticationException e) {
+            throw new AuthenticationException(e.getMessage()) {};
+        }
     }
 }

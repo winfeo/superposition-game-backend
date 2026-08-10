@@ -13,13 +13,23 @@ public class InvitationServiceImpl implements InvitationService {
 
     @Override
     public void addInvitation(Invitation invitation) {
-        invitations.computeIfAbsent(invitation.receiverId(), k -> new HashSet<>())
+        invitations
+                .computeIfAbsent(
+                        invitation.receiverId(),
+                        k -> ConcurrentHashMap.newKeySet()
+                )
                 .add(invitation);
     }
 
     @Override
     public Set<Invitation> getInvitations(String userId) {
-        return invitations.getOrDefault(userId, Collections.emptySet());
+        Set<Invitation> userInvitations = invitations.get(userId);
+
+        if (userInvitations == null) {
+            return Collections.emptySet();
+        }
+
+        return Set.copyOf(userInvitations);
     }
 
     @Override

@@ -1,6 +1,9 @@
 package io.github.winfeo.superpositiongame.backend.game.core.service;
 
 import io.github.winfeo.superpositiongame.backend.game.dto.GameStartEventDto;
+import io.github.winfeo.superpositiongame.backend.game.dto.ActiveGameResponseDTO;
+import io.github.winfeo.superpositiongame.backend.game.dto.GameLifecycleEventDTO;
+import io.github.winfeo.superpositiongame.backend.game.model.game.GameSession;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameState;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
@@ -95,5 +98,43 @@ public class GameEventPublisher {
         }
 
         System.out.println("=== SEND TO USER GAME ID END (GAME START) ===");
+    }
+
+    public void sendActiveGame(
+            String userId,
+            ActiveGameResponseDTO response
+    ) {
+        messagingTemplate.convertAndSendToUser(
+                userId,
+                "/queue/game.active",
+                response
+        );
+    }
+
+    public void sendLifecycle(GameSession session) {
+        GameLifecycleEventDTO event = new GameLifecycleEventDTO(
+                session.getGameId(),
+                session.getStatus(),
+                session.getDisconnectedPlayers(),
+                session.getReconnectDeadlines(),
+                System.currentTimeMillis(),
+                session.getGameState().winnerId(),
+                session.getEndReason()
+        );
+
+        sendLifecycle(session.getPlayerA(), session.getGameId(), event);
+        sendLifecycle(session.getPlayerB(), session.getGameId(), event);
+    }
+
+    private void sendLifecycle(
+            String userId,
+            String gameId,
+            GameLifecycleEventDTO event
+    ) {
+        messagingTemplate.convertAndSendToUser(
+                userId,
+                "/queue/game/" + gameId + "/lifecycle",
+                event
+        );
     }
 }

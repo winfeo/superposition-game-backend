@@ -36,9 +36,10 @@ public class CardGenerator {
     };
 
     public Card generateRandomCard() {
-        int randomNumber = ThreadLocalRandom.current().nextInt(TYPES.length);
-        CardType type = TYPES[randomNumber];
+        int randomIndex = ThreadLocalRandom.current().nextInt(TYPES.length);
+        CardType type = TYPES[randomIndex];
         String randomId = UUID.randomUUID().toString();
+
         return new Card(randomId, type);
     }
 
@@ -47,6 +48,7 @@ public class CardGenerator {
         for (int i = 0; i < count; i++) {
             cards.add(generateRandomCard());
         }
+
         return cards;
     }
 }

@@ -23,6 +23,15 @@ public class ActiveGameRepositoryImpl implements ActiveGameRepository {
     }
 
     @Override
+    public GameSession findByPlayerId(String playerId) {
+        return games.values()
+                .stream()
+                .filter(session -> session.containsPlayer(playerId))
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
     public Collection<GameSession> getAllGames() {
         return games.values();
     }
