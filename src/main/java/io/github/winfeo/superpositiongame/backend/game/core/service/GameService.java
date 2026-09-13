@@ -1,10 +1,15 @@
 package io.github.winfeo.superpositiongame.backend.game.core.service;
 
+import io.github.winfeo.superpositiongame.backend.game.model.game.AiDifficulty;
+import io.github.winfeo.superpositiongame.backend.game.model.game.AiGameSession;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameSession;
 import io.github.winfeo.superpositiongame.backend.game.model.move.Move;
 
+import java.util.Optional;
+
 public interface GameService {
     void createGame(String playerA, String playerB);
+    Optional<AiGameSession> createAiGame(String humanPlayerId, AiDifficulty difficulty);
     void handleMove(String gameId, Move move, String userId, int expectedTurnNumber);
     void broadcastState(GameSession session);
     void playerReady(String gameId, String userId);

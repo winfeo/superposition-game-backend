@@ -1,19 +1,18 @@
 package io.github.winfeo.superpositiongame.backend.game.core.service;
 
+import io.github.winfeo.superpositiongame.backend.ai.service.AiMoveDecision;
+import io.github.winfeo.superpositiongame.backend.ai.service.AiTurnService;
 import io.github.winfeo.superpositiongame.backend.config.GamePresenceProperties;
 import io.github.winfeo.superpositiongame.backend.game.core.GameEngine;
 import io.github.winfeo.superpositiongame.backend.game.core.GameLoop;
 import io.github.winfeo.superpositiongame.backend.game.dto.ActiveGameDTO;
 import io.github.winfeo.superpositiongame.backend.game.dto.ActiveGameResponseDTO;
-import io.github.winfeo.superpositiongame.backend.game.model.game.GameEndReason;
-import io.github.winfeo.superpositiongame.backend.game.model.game.GamePhase;
-import io.github.winfeo.superpositiongame.backend.game.model.game.GameSession;
-import io.github.winfeo.superpositiongame.backend.game.model.game.GameSessionStatus;
-import io.github.winfeo.superpositiongame.backend.game.model.game.GameState;
-import io.github.winfeo.superpositiongame.backend.game.model.game.PlayerState;
+import io.github.winfeo.superpositiongame.backend.game.model.game.*;
 import io.github.winfeo.superpositiongame.backend.game.model.move.Move;
 import io.github.winfeo.superpositiongame.backend.game.model.move.Surrender;
 import io.github.winfeo.superpositiongame.backend.repository.memory.ActiveGameRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -26,6 +25,7 @@ import java.util.Optional;
 
 @Service
 public class GameServiceImpl implements GameService {
+    private static final Logger log = LoggerFactory.getLogger(GameServiceImpl.class);
     private static final long MINIMUM_RESUMED_TURN_TIME_MS = 1_000L;
 
     private final GameResultService gameResultService;
@@ -35,6 +35,7 @@ public class GameServiceImpl implements GameService {
     private final GameEventPublisher publisher;
     private final GameLoop gameLoop;
     private final GamePresenceProperties presenceProperties;
+    private final AiTurnService aiTurnService;
 
     public GameServiceImpl(
             GameResultService gameResultService,
@@ -42,7 +43,8 @@ public class GameServiceImpl implements GameService {
             GameEngine gameEngine,
             GameEventPublisher publisher,
             GameLoop gameLoop,
-            GamePresenceProperties presenceProperties
+            GamePresenceProperties presenceProperties,
+            AiTurnService aiTurnService
     ) {
         this.gameResultService = gameResultService;
         this.repository = repository;
@@ -50,6 +52,7 @@ public class GameServiceImpl implements GameService {
         this.gameEngine = gameEngine;
         this.gameLoop = gameLoop;
         this.presenceProperties = presenceProperties;
+        this.aiTurnService = aiTurnService;
     }
 
     @Override
@@ -74,6 +77,37 @@ public class GameServiceImpl implements GameService {
         publisher.sendGameStart(playerA, gameId);
         publisher.sendGameStart(playerB, gameId);
         publisher.sendLifecycle(session);
+    }
+
+    // TODO убрать дублирование потом
+    @Override
+    public synchronized Optional<AiGameSession> createAiGame(
+            String humanPlayerId,
+            AiDifficulty difficulty
+    ) {
+        if (repository.findByPlayerId(humanPlayerId) != null) {
+            return Optional.empty();
+        }
+
+        String gameId = UUID.randomUUID().toString();
+        String aiPlayerId = "ai-" + UUID.randomUUID();
+        GameState initialState = gameLoop.startAiGame(humanPlayerId, aiPlayerId);
+        AiGameSession session = new AiGameSession(
+                gameId,
+                humanPlayerId,
+                aiPlayerId,
+                initialState,
+                difficulty
+        );
+
+        repository.save(session);
+        Set<String> readySet = ConcurrentHashMap.newKeySet();
+        readySet.add(aiPlayerId);
+        readyPlayers.put(gameId, readySet);
+
+        publisher.sendGameStart(humanPlayerId, gameId);
+        publisher.sendLifecycle(session);
+        return Optional.of(session);
     }
 
     @Override
@@ -309,6 +343,7 @@ public class GameServiceImpl implements GameService {
 
                 synchronized (session) {
                     for (String playerId : session.getPlayerIds()) {
+                        if (isAiPlayer(session, playerId)) continue;
                         if (session.isDisconnected(playerId)) continue;
 
                         Long lastHeartbeat = session.getLastHeartbeatAt(playerId);
@@ -335,6 +370,8 @@ public class GameServiceImpl implements GameService {
         String playerA;
         String playerB;
         String gameId;
+        boolean aiGame;
+        String humanPlayerId;
 
         synchronized (session) {
             if (repository.findById(session.getGameId()) == null) return;
@@ -347,10 +384,123 @@ public class GameServiceImpl implements GameService {
             playerA = session.getPlayerA();
             playerB = session.getPlayerB();
             gameId = session.getGameId();
+            aiGame = session instanceof AiGameSession;
+            humanPlayerId = aiGame? ((AiGameSession) session).getHumanPlayerId(): null;
         }
 
-        publisher.sendToUser(playerA, gameId, state);
-        publisher.sendToUser(playerB, gameId, state);
+        if (aiGame) { publisher.sendToUser(humanPlayerId, gameId, state); }
+        else {
+            publisher.sendToUser(playerA, gameId, state);
+            publisher.sendToUser(playerB, gameId, state);
+        }
+
+        requestAiMoveIfNeeded(session);
+    }
+
+    private void requestAiMoveIfNeeded(GameSession session) {
+        GameState snapshot;
+        String gameId;
+        String aiPlayerId;
+        AiDifficulty difficulty;
+        long expectedRevision;
+
+        synchronized (session) {
+            if (repository.findById(session.getGameId()) == null
+                    || !(session instanceof AiGameSession aiSession)
+                    || session.getStatus() != GameSessionStatus.ACTIVE
+                    || aiSession.isRequestInProgress()) {
+                return;
+            }
+
+            snapshot = session.getGameState();
+            aiPlayerId = aiSession.getAiPlayerId();
+            if (snapshot.phase() == GamePhase.GAME_FINISHED
+                    || snapshot.winnerId() != null
+                    || !aiPlayerId.equals(snapshot.currentPlayerId())) {
+                return;
+            }
+
+            Long turnEndsAt = snapshot.turnEndsAt();
+            if (turnEndsAt == null || System.currentTimeMillis() >= turnEndsAt) {
+                return;
+            }
+
+            aiSession.setRequestInProgress(true);
+            expectedRevision = session.getGameStateRevision();
+            gameId = session.getGameId();
+            difficulty = aiSession.getDifficulty();
+        }
+
+        try {
+            aiTurnService.chooseMove(gameId, snapshot, aiPlayerId, difficulty)
+                    .whenComplete((decision, error) -> completeAiMove(
+                            gameId,
+                            expectedRevision,
+                            decision,
+                            error
+                    ));
+        } catch (RuntimeException exception) {
+            log.error("Ошибка получения хода от AI: gameId={}", gameId, exception);
+            completeAiMove(gameId, expectedRevision, null, exception);
+        }
+    }
+
+    private void completeAiMove(
+            String gameId,
+            long expectedRevision,
+            AiMoveDecision decision,
+            Throwable error
+    ) {
+        GameSession session = repository.findById(gameId);
+        if (session == null) return;
+
+        String winnerId;
+        GameEndReason endReason = GameEndReason.OBJECTIVE_COMPLETED;
+
+        synchronized (session) {
+            if (!(session instanceof AiGameSession aiSession)) return;
+            aiSession.setRequestInProgress(false);
+
+            if (session.getStatus() != GameSessionStatus.ACTIVE || session.getGameStateRevision() != expectedRevision) return;
+
+            GameState currentState = session.getGameState();
+            if (!aiSession.getAiPlayerId().equals(currentState.currentPlayerId())) return;
+
+            Long turnEndsAt = currentState.turnEndsAt();
+            if (turnEndsAt == null || System.currentTimeMillis() >= turnEndsAt) return;
+
+            GameState nextState;
+            Move move = error == null && decision != null ? decision.move() : null;
+            if (error != null) { log.warn("Ошибка применения хода AI: gameId={}", gameId, error); }
+
+            if (move == null) {
+                nextState = gameLoop.forceEndTurn(currentState);
+            } else {
+                Optional<GameState> appliedState = gameEngine.applyMove(currentState, move);
+
+                if (appliedState.isEmpty()) {
+                    log.warn("Ход от AI отклонён после проверки: gameId={}", gameId);
+                    nextState = gameLoop.forceEndTurn(currentState);
+                } else {
+                    nextState = gameLoop.afterMove(
+                            appliedState.get(),
+                            aiSession.getAiPlayerId(),
+                            gameId
+                    );
+
+                    if (move instanceof Surrender) {
+                        endReason = GameEndReason.SURRENDER;
+                    }
+                }
+            }
+
+            session.updateGameState(nextState);
+            repository.save(session);
+            winnerId = nextState.winnerId();
+        }
+
+        if (winnerId != null) { finishWithWinner(session, winnerId, endReason); }
+        else { broadcastState(session); }
     }
 
     private void markDisconnected(
@@ -362,7 +512,7 @@ public class GameServiceImpl implements GameService {
         boolean gamePaused = false;
 
         synchronized (session) {
-            if (!session.containsPlayer(userId) || isTerminal(session)) return;
+            if (!session.containsPlayer(userId) || isAiPlayer(session, userId) || isTerminal(session)) return;
 
             changed = session.markDisconnected(
                     userId,
@@ -387,6 +537,10 @@ public class GameServiceImpl implements GameService {
             broadcastState(session);
         }
         publisher.sendLifecycle(session);
+    }
+
+    private boolean isAiPlayer(GameSession session, String playerId) {
+        return session instanceof AiGameSession aiSession && aiSession.getAiPlayerId().equals(playerId);
     }
 
     private void pauseSession(GameSession session, long now) {
@@ -416,8 +570,12 @@ public class GameServiceImpl implements GameService {
                         .copyWithTurnEndsAt(now + timeLeft)
         );
         session.setStatus(GameSessionStatus.ACTIVE);
-        session.recordHeartbeat(session.getPlayerA(), now);
-        session.recordHeartbeat(session.getPlayerB(), now);
+        if (session instanceof AiGameSession aiSession) {
+            session.recordHeartbeat(aiSession.getHumanPlayerId(), now);
+        } else {
+            session.recordHeartbeat(session.getPlayerA(), now);
+            session.recordHeartbeat(session.getPlayerB(), now);
+        }
         session.invalidateTimerSync();
     }
 
@@ -487,6 +645,11 @@ public class GameServiceImpl implements GameService {
 
         broadcastState(session);
         publisher.sendLifecycle(session);
+        if (session instanceof AiGameSession) {
+            repository.delete(session.getGameId());
+            return;
+        }
+
         try {
             gameResultService.saveGameResult(session);
         } finally {

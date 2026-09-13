@@ -61,4 +61,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleAuthenticationException(AuthenticationException e) {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
     }
+
+    @ExceptionHandler({
+            InvalidAiResponseException.class,
+            AiMoveRejectedException.class
+    })
+    public ResponseEntity<String> handleAiServiceException(RuntimeException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_GATEWAY);
+    }
+
+    @ExceptionHandler({
+            AiStateMappingException.class,
+            AiConfigurationException.class
+    })
+    public ResponseEntity<String> handleAiInternalException(RuntimeException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

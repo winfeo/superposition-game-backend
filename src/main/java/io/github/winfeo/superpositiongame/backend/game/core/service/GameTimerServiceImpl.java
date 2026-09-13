@@ -71,7 +71,13 @@ public class GameTimerServiceImpl implements GameTimerService {
 
             if (turnFinished) gameService.broadcastState(session);
 
-            if (timerSnapshot != null) {
+            if (timerSnapshot != null && session instanceof AiGameSession aiSession) {
+                sendTime(
+                        aiSession.getHumanPlayerId(),
+                        session.getGameId(),
+                        timerSnapshot
+                );
+            } else if (timerSnapshot != null) {
                 sendTime(
                         session.getPlayerA(),
                         session.getGameId(),

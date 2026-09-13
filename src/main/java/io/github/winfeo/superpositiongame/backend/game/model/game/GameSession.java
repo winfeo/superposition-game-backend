@@ -5,10 +5,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+// Онлайн сессия двух игроков
 public class GameSession {
     private final String gameId;
     private final String playerId_A;
     private final String playerId_B;
+    private final GameMode gameMode;
     private volatile GameState gameState;
     private volatile GameSessionStatus status;
     private volatile GameEndReason endReason;
@@ -19,6 +21,7 @@ public class GameSession {
     private long timerRevision;
     private long lastTimerSyncAt;
     private int lastTimerSyncTurnNumber = -1;
+    private long gameStateRevision;
 
     public GameSession(
             String gameId,
@@ -26,10 +29,27 @@ public class GameSession {
             String playerId_B,
             GameState gameState
     ) {
+        this(
+                gameId,
+                playerId_A,
+                playerId_B,
+                gameState,
+                GameMode.PVP
+        );
+    }
+
+    protected GameSession(
+            String gameId,
+            String playerId_A,
+            String playerId_B,
+            GameState gameState,
+            GameMode gameMode
+    ) {
         this.gameId = gameId;
         this.playerId_A = playerId_A;
         this.playerId_B = playerId_B;
         this.gameState = gameState;
+        this.gameMode = gameMode;
         this.status = GameSessionStatus.WAITING_FOR_PLAYERS;
 
         long now = System.currentTimeMillis();
@@ -40,8 +60,14 @@ public class GameSession {
     public String getGameId() { return gameId; }
     public String getPlayerA() { return playerId_A; }
     public String getPlayerB() { return playerId_B; }
+    public GameMode getGameMode() { return gameMode; }
     public GameState getGameState() { return gameState; }
-    public void updateGameState(GameState gameState) { this.gameState = gameState; }
+    public synchronized void updateGameState(GameState gameState) {
+        this.gameState = gameState;
+        this.gameStateRevision++;
+    }
+
+    public synchronized long getGameStateRevision() { return gameStateRevision; }
 
     public GameSessionStatus getStatus() { return status; }
     public void setStatus(GameSessionStatus status) { this.status = status; }

@@ -11,6 +11,7 @@ import io.github.winfeo.superpositiongame.backend.game.model.game.*;
 import io.github.winfeo.superpositiongame.backend.game.model.move.*;
 import io.github.winfeo.superpositiongame.backend.game.util.ArrowCompatibilityUtil;
 import io.github.winfeo.superpositiongame.backend.game.util.SameRowUtil;
+import io.github.winfeo.superpositiongame.backend.game.util.SlotOwnerResolver;
 import io.github.winfeo.superpositiongame.backend.util.CardGenerator;
 import org.springframework.stereotype.Component;
 
@@ -90,7 +91,12 @@ public class GameEngine {
         if (effect == null) return state;
 
         //ищем тарет id игрока
-        String targetPlayerId = findPlayerId(state, move.targetPlayerId());
+        String targetPlayerId = SlotOwnerResolver.resolvePlayerId(
+                state,
+                move.playerId(),
+                move.targetPlayerId()
+        ).orElse(null);
+        if (targetPlayerId == null) return state;
 
         //проверяем, что карта кладётся в тот же регистр (для Kron Multi)
         if (!SameRowUtil.isMoveAllowed(state, targetPlayerId)) {
@@ -136,7 +142,12 @@ public class GameEngine {
         String playerId = move.playerId();
 
         //ищем тарет id игрока
-        String targetPlayerId = findPlayerId(state, move.targetPlayerId());
+        String targetPlayerId = SlotOwnerResolver.resolvePlayerId(
+                state,
+                move.playerId(),
+                move.targetPlayerId()
+        ).orElse(null);
+        if (targetPlayerId == null) return state;
 
         //проверяем, что карта кладётся в тот же регистр (для Kron Multi)
         if (!SameRowUtil.isMoveAllowed(state, targetPlayerId)) {
@@ -213,6 +224,9 @@ public class GameEngine {
 
     private GameState handleSwapDices(GameState state, SwapDices move) {
         String playerId = move.playerId();
+        if (SlotOwnerResolver.resolvePlayerId(state, playerId, move.firstSlotOwner()).isEmpty() || SlotOwnerResolver.resolvePlayerId(state, playerId, move.secondSlotOwner()).isEmpty()) {
+            return state;
+        }
 
         //ищем игроков
         PlayerState player = state.players().get(playerId);
@@ -221,6 +235,12 @@ public class GameEngine {
                 .findFirst()
                 .orElse(null);
         if (player == null || opponent == null) return state;
+
+        Card swapCard = player.hand().stream()
+                .filter(card -> card.id().equals(move.cardId()))
+                .findFirst()
+                .orElse(null);
+        if (swapCard == null || swapCard.type() != CardType.SWAP) return state;
 
         //ищем нужные слоты
         List<SlotState> playerSlots = new ArrayList<>(player.slots());
@@ -384,19 +404,5 @@ public class GameEngine {
         return state.copyWithPlayers(updatedPlayers);
     }
 
-    private String findPlayerId( //TODO подумать, может быть сделать систему индексов
-            GameState state,
-            String targetPlayerEnum
-    ) {
-        if (targetPlayerEnum.equals(SlotOwner.PLAYER.name())) {
-            return state.currentPlayerId();
-        } else {
-            return state.players().keySet()
-                    .stream()
-                    .filter(id -> !id.equals(state.currentPlayerId()))
-                    .findFirst()
-                    .orElse("");
-        }
-    }
 }
 

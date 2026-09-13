@@ -23,6 +23,12 @@ game:
     reconnect-timeout-ms: 60000
     monitor-interval-ms: 1000
 
+ai:
+  api:
+    base-url: ${AI_API_BASE_URL}
+    connect-timeout: ${AI_API_CONNECT_TIMEOUT:2s}
+    request-timeout: ${AI_API_REQUEST_TIMEOUT:10s}
+
 ---
 spring:
   config:
