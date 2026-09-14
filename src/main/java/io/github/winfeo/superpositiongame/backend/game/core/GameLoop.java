@@ -33,35 +33,25 @@ public class GameLoop {
     }
     public GameState startGame(String playerA_id, String playerB_id) {
         //TODO случайно выбирать, кто первый ходит
+        PlayerState playerA = new PlayerState(playerA_id, getUserNickname(playerA_id));
+        PlayerState playerB = new PlayerState(playerB_id, getUserNickname(playerB_id));
+        return startGame(playerA, playerB);
+    }
 
-        String playerNicknameA = null;
-        try {
-            Long userId = Long.parseLong(playerA_id);
-            User user = userRepository.findById(userId).orElse(null);
-            if (user != null) {
-                playerNicknameA = user.getNickname();
-            }
-        } catch (NumberFormatException ignored) { }
+    public GameState startAiGame(String humanPlayerId, String aiPlayerId) {
+        PlayerState humanPlayer = new PlayerState(humanPlayerId, getUserNickname(humanPlayerId));
+        PlayerState aiPlayer = new PlayerState(aiPlayerId, "AI");
+        return startGame(humanPlayer, aiPlayer);
+    }
 
-        String playerNicknameB = null;
-        try {
-            Long userId = Long.parseLong(playerB_id);
-            User user = userRepository.findById(userId).orElse(null);
-            if (user != null) {
-                playerNicknameB = user.getNickname();
-            }
-        } catch (NumberFormatException ignored) { }
-
-        PlayerState playerA = new PlayerState(playerA_id, playerNicknameA);
-        PlayerState playerB = new PlayerState(playerB_id, playerNicknameB);
-
+    private GameState startGame(PlayerState playerA, PlayerState playerB) {
         GameState state = GameState.initial(playerA, playerB);
 
         //общие требуемые состояния для слотов
         List<DiceType> requiredStates = diceGenerator.generateRequiredStates(4);
         state = initSlots(state, requiredStates);
         state = dealCards(state);
-        state = startTurn(state, playerA_id);
+        state = startTurn(state, playerA.id());
 
         return state;
     }

@@ -3,6 +3,7 @@ package io.github.winfeo.superpositiongame.backend.game.core.service;
 import io.github.winfeo.superpositiongame.backend.game.dto.GameStartEventDto;
 import io.github.winfeo.superpositiongame.backend.game.dto.ActiveGameResponseDTO;
 import io.github.winfeo.superpositiongame.backend.game.dto.GameLifecycleEventDTO;
+import io.github.winfeo.superpositiongame.backend.game.model.game.AiGameSession;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameSession;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameState;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -121,6 +122,11 @@ public class GameEventPublisher {
                 session.getGameState().winnerId(),
                 session.getEndReason()
         );
+
+        if (session instanceof AiGameSession aiSession) {
+            sendLifecycle(aiSession.getHumanPlayerId(), session.getGameId(), event);
+            return;
+        }
 
         sendLifecycle(session.getPlayerA(), session.getGameId(), event);
         sendLifecycle(session.getPlayerB(), session.getGameId(), event);

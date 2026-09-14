@@ -19,6 +19,7 @@ public enum CardType {
     KRONECKER_MULTIPLICATION,
     QUANTUM_NOISE,
     SWAP,
-    RESHUFFLE
+    RESHUFFLE,
+    QUANTUM_LUCKY
 }
 
