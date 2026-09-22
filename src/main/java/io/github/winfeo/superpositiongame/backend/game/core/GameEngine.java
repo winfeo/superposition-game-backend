@@ -107,11 +107,19 @@ public class GameEngine {
         PlayerState targetPlayer = state.players().get(targetPlayerId);
         if (targetPlayer == null) return state;
 
+        if (move.targetSlotIndex() < 0 || move.targetSlotIndex() >= targetPlayer.slots().size()) {
+            return state;
+        }
+
         SlotState slot = targetPlayer.slots().get(move.targetSlotIndex());
 
         if (slot.isFrozen() &&
                 card.type() != CardType.QUANTUM_NOISE &&
                 card.type() != CardType.SWAP) {
+            return state;
+        }
+
+        if (!isSpecialCardTargetAllowed(card, slot, move.playerId(), targetPlayerId)) {
             return state;
         }
 
@@ -136,6 +144,38 @@ public class GameEngine {
         updatedPlayers.put(move.playerId(), updatedPlayer);
 
         return stateAfterEffect.copyWithPlayers(updatedPlayers);
+    }
+
+    private boolean isSpecialCardTargetAllowed(
+            Card card,
+            SlotState slot,
+            String actingPlayerId,
+            String targetPlayerId
+    ) {
+        if (card.type() == CardType.QUANTUM_LUCKY) {
+            return actingPlayerId.equals(targetPlayerId)
+                    && slot.dice().requiredState() != null
+                    && slot.dice().state() != slot.dice().requiredState();
+        }
+
+        if (card.type() != CardType.QUANTUM_NOISE) {
+            return true;
+        }
+
+        if (slot.appliedCards().isEmpty()) {
+            return false;
+        }
+
+        CardType cancelledType = slot.appliedCards()
+                .get(slot.appliedCards().size() - 1)
+                .type();
+        return switch (cancelledType) {
+            case PAULI_X, PAULI_Y, PAULI_Z,
+                 HADAMARD,
+                 PHASE_FORWARD, PHASE_BACKWARD,
+                 MEASUREMENT -> true;
+            default -> false;
+        };
     }
 
     private GameState handleRotateDice(GameState state, RotateDice move) {

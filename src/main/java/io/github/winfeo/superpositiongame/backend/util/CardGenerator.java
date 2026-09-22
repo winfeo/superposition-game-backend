@@ -29,9 +29,8 @@ public class CardGenerator {
             CardType.IDENTITY,
             CardType.SWAP,
             CardType.MEASUREMENT,
-//            CardType.QUANTUM_NOISE, //TODO доделать
-//            CardType.QUANTUM_NOISE, //TODO доделать
-//            CardType.QUANTUM_LUCKY, //TODO доделать
+            CardType.QUANTUM_NOISE,
+            CardType.QUANTUM_LUCKY,
             CardType.RESHUFFLE
     };
 

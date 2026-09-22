@@ -124,6 +124,14 @@ public class CardDescriptionRepository {
                     null
             )),
 
+            Map.entry(CardType.QUANTUM_LUCKY, new CardDescription(
+                    CardType.QUANTUM_LUCKY,
+                    null,
+                    1,
+                    false,
+                    null
+            )),
+
             Map.entry(CardType.KRONECKER_MULTIPLICATION, new CardDescription(
                     CardType.KRONECKER_MULTIPLICATION,
                     null,

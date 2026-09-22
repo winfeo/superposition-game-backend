@@ -4,6 +4,7 @@ import io.github.winfeo.superpositiongame.backend.game.effect.CardEffect;
 import io.github.winfeo.superpositiongame.backend.game.model.card.Card;
 import io.github.winfeo.superpositiongame.backend.game.model.card.CardType;
 import io.github.winfeo.superpositiongame.backend.game.model.dice.Dice;
+import io.github.winfeo.superpositiongame.backend.game.model.dice.DiceType;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameState;
 import io.github.winfeo.superpositiongame.backend.game.model.game.PlayerState;
 import io.github.winfeo.superpositiongame.backend.game.model.game.SlotState;
@@ -25,17 +26,25 @@ public class NoiseEffect implements CardEffect {
         SlotState slot = slots.get(targetSlotIndex);
         if (slot.appliedCards().isEmpty()) return state;
 
-        List<Card> previousCards = slot.appliedCards()
-                .subList(0, slot.appliedCards().size() - 1);
-
-        Dice previousDice = calculatePreviousDiceState(
-                slot.initialDice(),
-                previousCards
+        Card cancelledCard = slot.appliedCards().get(slot.appliedCards().size() - 1);
+        List<Card> previousCards = new ArrayList<>(
+                slot.appliedCards().subList(0, slot.appliedCards().size() - 1)
         );
+        Dice previousDice = slot.dice().copyWithState(
+                calculatePreviousState(slot, cancelledCard)
+        );
+        boolean isFrozen = cancelledCard.type() == CardType.MEASUREMENT
+                ? false
+                : slot.isFrozen();
 
-        SlotState updatedSlot = slot
-                .copyWithAppliedCards(previousCards)
-                .copyWithDice(previousDice);
+        SlotState updatedSlot = new SlotState(
+                slot.index(),
+                slot.ownerId(),
+                slot.initialDice(),
+                previousDice,
+                previousCards,
+                isFrozen
+        );
 
         slots.set(targetSlotIndex, updatedSlot);
         PlayerState updatedPlayer = player.copyWithSlots(slots);
@@ -47,11 +56,72 @@ public class NoiseEffect implements CardEffect {
 
     @Override
     public boolean supports(CardType type) {
-        return false;
+        return type == CardType.QUANTUM_NOISE;
     }
 
-    private Dice calculatePreviousDiceState(Dice initialDice, List<Card> appliedCards) {
-        // TODO
-        return initialDice;
+    private DiceType calculatePreviousState(SlotState slot, Card cancelledCard) {
+        DiceType currentState = slot.dice().state();
+
+        return switch (cancelledCard.type()) {
+            case PAULI_X -> rollbackPauliX(currentState);
+            case PAULI_Y -> rollbackPauliY(currentState);
+            case PAULI_Z -> rollbackPauliZ(currentState);
+            case HADAMARD -> rollbackHadamard(currentState);
+            case PHASE_FORWARD -> rollbackPhase(currentState, false);
+            case PHASE_BACKWARD -> rollbackPhase(currentState, true);
+            case MEASUREMENT -> currentState;
+            default -> currentState;
+        };
+    }
+
+    private DiceType rollbackPauliX(DiceType state) {
+        return switch (state) {
+            case ZERO -> DiceType.ONE;
+            case ONE -> DiceType.ZERO;
+            case I -> DiceType.I_MINUS;
+            case I_MINUS -> DiceType.I;
+            default -> state;
+        };
+    }
+
+    private DiceType rollbackPauliY(DiceType state) {
+        return switch (state) {
+            case ZERO -> DiceType.ONE;
+            case ONE -> DiceType.ZERO;
+            case PLUS -> DiceType.MINUS;
+            case MINUS -> DiceType.PLUS;
+            default -> state;
+        };
+    }
+
+    private DiceType rollbackPauliZ(DiceType state) {
+        return switch (state) {
+            case PLUS -> DiceType.MINUS;
+            case MINUS -> DiceType.PLUS;
+            case I -> DiceType.I_MINUS;
+            case I_MINUS -> DiceType.I;
+            default -> state;
+        };
+    }
+
+    private DiceType rollbackHadamard(DiceType state) {
+        return switch (state) {
+            case ZERO -> DiceType.PLUS;
+            case ONE -> DiceType.MINUS;
+            case PLUS -> DiceType.ZERO;
+            case MINUS -> DiceType.ONE;
+            case I -> DiceType.I_MINUS;
+            case I_MINUS -> DiceType.I;
+        };
+    }
+
+    private DiceType rollbackPhase(DiceType state, boolean forward) {
+        return switch (state) {
+            case PLUS -> forward ? DiceType.I : DiceType.I_MINUS;
+            case MINUS -> forward ? DiceType.I_MINUS : DiceType.I;
+            case I -> forward ? DiceType.MINUS : DiceType.PLUS;
+            case I_MINUS -> forward ? DiceType.PLUS : DiceType.MINUS;
+            default -> state;
+        };
     }
 }
