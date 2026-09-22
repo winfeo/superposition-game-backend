@@ -59,8 +59,14 @@ public class FallbackMoveSelector {
             case ROTATE_X, ROTATE_Y, ROTATE_Z -> addRotateCandidates(candidates, player.id(), card.id());
             case SWAP -> addSwapCandidates(candidates, player.id(), card.id());
             case RESHUFFLE -> addReshuffleCandidates(candidates, player, card);
-            case QUANTUM_LUCKY -> { }
+            case QUANTUM_LUCKY -> addOwnSlotCandidates(candidates, player.id(), card.id());
             default -> addPlayCardCandidates(candidates, player.id(), card.id());
+        }
+    }
+
+    private void addOwnSlotCandidates(List<Move> candidates, String playerId, String cardId) {
+        for (int slotIndex = 0; slotIndex < 4; slotIndex++) {
+            candidates.add(new PlayCard(playerId, cardId, slotIndex, SlotOwner.PLAYER.name()));
         }
     }
 
