@@ -5,7 +5,9 @@ import io.github.winfeo.superpositiongame.backend.game.core.GameEngine;
 import io.github.winfeo.superpositiongame.backend.game.model.card.Card;
 import io.github.winfeo.superpositiongame.backend.game.model.card.CardType;
 import io.github.winfeo.superpositiongame.backend.game.model.game.GameState;
+import io.github.winfeo.superpositiongame.backend.game.model.game.SlotOwner;
 import io.github.winfeo.superpositiongame.backend.game.model.move.Move;
+import io.github.winfeo.superpositiongame.backend.game.model.move.PlayCard;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -87,5 +89,21 @@ class FallbackMoveSelectorTest {
 
         assertThat(result).isEmpty();
         verifyNoInteractions(gameEngine);
+    }
+
+    @Test
+    void generatesQuantumLuckyFallbackOnlyForOwnSlots() {
+        GameState state = AiTestFixtures.gameState(
+                List.of(new Card("lucky-card", CardType.QUANTUM_LUCKY))
+        );
+        when(gameEngine.applyMove(eq(state), any(Move.class)))
+                .thenReturn(Optional.of(state));
+
+        Move result = new FallbackMoveSelector(gameEngine)
+                .select(state, AI_ID)
+                .orElseThrow();
+
+        assertThat(result).isInstanceOf(PlayCard.class);
+        assertThat(((PlayCard) result).targetPlayerId()).isEqualTo(SlotOwner.PLAYER.name());
     }
 }

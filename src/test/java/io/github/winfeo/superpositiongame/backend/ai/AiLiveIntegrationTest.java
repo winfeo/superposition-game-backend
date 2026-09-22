@@ -21,6 +21,7 @@ import io.github.winfeo.superpositiongame.backend.game.effect.effect.IdentityEff
 import io.github.winfeo.superpositiongame.backend.game.effect.effect.MeasurementEffect;
 import io.github.winfeo.superpositiongame.backend.game.effect.effect.MultiplicationEffect;
 import io.github.winfeo.superpositiongame.backend.game.effect.effect.NoiseEffect;
+import io.github.winfeo.superpositiongame.backend.game.effect.effect.QuantumLuckyEffect;
 import io.github.winfeo.superpositiongame.backend.game.effect.effect.PauliEffect;
 import io.github.winfeo.superpositiongame.backend.game.effect.effect.PhaseEffect;
 import io.github.winfeo.superpositiongame.backend.game.effect.effect.ReshuffleEffect;
@@ -371,6 +372,7 @@ class AiLiveIntegrationTest {
                 new MeasurementEffect(),
                 new MultiplicationEffect(),
                 new NoiseEffect(),
+                new QuantumLuckyEffect(),
                 new PauliEffect(),
                 new PhaseEffect(),
                 new ReshuffleEffect()
